@@ -1,60 +1,46 @@
-import { createContext, useContext, useEffect, useState, type FormEvent, type ReactNode } from "react";
-import { Link, NavLink, useLocation } from "react-router-dom";
-import { SCHOOL, announcements, downloadResource, navLinks, quickActions } from "../lib/data";
-import { Crest, IcArrow, IcClose, IcMenu, IcPhone, IcSearch, IcUser } from "./icons";
-import { SearchOverlay } from "./SearchOverlay";
+import React, { useEffect, useState } from "react";
+import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
+import { NAV_LINKS, TICKER } from "../lib/data";
+import { useScrolled } from "../lib/hooks";
+import {
+  IcLogo,
+  IcSearch,
+  IcMenu,
+  IcClose,
+  IcArrow,
+  IcArrowUp,
+  IcMail,
+  IcPhone,
+  IcPin,
+} from "./icons";
+import SearchOverlay from "./SearchOverlay";
 
-/* ---------- search context ---------- */
-const SearchCtx = createContext<{ openSearch: () => void }>({ openSearch: () => {} });
-export const useSearch = () => useContext(SearchCtx);
+/* ---------------- announcement ticker ---------------- */
 
-/* ---------- announcement ticker ---------- */
-export function TopBar() {
-  const items = [...announcements, ...announcements];
+function Ticker() {
+  const items = [...TICKER, ...TICKER];
   return (
-    <div className="relative z-[60] flex items-stretch bg-navy-950 text-navy-100">
-      <div className="marquee relative flex min-w-0 flex-1 items-center overflow-hidden border-r border-navy-800">
-        <span className="kicker z-10 shrink-0 bg-gold-400 px-3 py-2 text-navy-950 sm:px-4">Noticeboard</span>
-        <div className="marquee-track items-center">
-          {items.map((a, i) => (
-            <span key={i} className="flex items-center whitespace-nowrap text-[0.78rem] tracking-wide">
-              <span className="mx-5 inline-block h-1.5 w-1.5 rotate-45 bg-gold-400" />
-              {a}
-            </span>
-          ))}
-        </div>
-      </div>
-      <div className="hidden shrink-0 items-center gap-5 px-5 text-[0.78rem] lg:flex">
-        <a href={`tel:${SCHOOL.phone.replace(/[^+\d]/g, "")}`} className="flex items-center gap-2 transition-colors hover:text-gold-300">
-          <IcPhone className="h-3.5 w-3.5" /> {SCHOOL.phone}
-        </a>
-        <span className="h-3 w-px bg-navy-700" />
-        <Link to="/portal" className="flex items-center gap-2 font-semibold text-gold-300 transition-colors hover:text-gold-200">
-          <IcUser className="h-3.5 w-3.5" /> Student Portal
-        </Link>
+    <div className="bg-pine-950 text-gold-300 overflow-hidden border-b border-pine-800/60">
+      <div className="ticker-track py-2">
+        {items.map((t, i) => (
+          <span key={i} className="flex items-center whitespace-nowrap text-[0.78rem] font-semibold tracking-wide">
+            <span className="mx-5 inline-block w-1.5 h-1.5 rotate-45 bg-gold-400 shrink-0" />
+            {t}
+          </span>
+        ))}
       </div>
     </div>
   );
 }
 
-/* ---------- sticky header ---------- */
-export function Header() {
-  const [scrolled, setScrolled] = useState(false);
+/* ---------------- navigation ---------------- */
+
+function Nav({ onSearch }: { onSearch: () => void }) {
+  const scrolled = useScrolled(14);
   const [drawer, setDrawer] = useState(false);
-  const { openSearch } = useSearch();
   const location = useLocation();
 
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 8);
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-
-  useEffect(() => {
-    setDrawer(false);
-  }, [location.pathname]);
-
+  useEffect(() => setDrawer(false), [location.pathname]);
   useEffect(() => {
     document.body.style.overflow = drawer ? "hidden" : "";
     return () => {
@@ -63,211 +49,205 @@ export function Header() {
   }, [drawer]);
 
   return (
-    <header
-      className={`sticky top-0 z-50 border-b transition-all duration-300 ${
-        scrolled ? "border-navy-900/15 bg-chalk-50/95 shadow-[0_10px_30px_-18px_rgba(7,26,48,0.5)] backdrop-blur" : "border-transparent bg-chalk-50"
-      }`}
-    >
-      <div className="mx-auto flex max-w-7xl items-center gap-4 px-5 py-3 sm:px-8">
-        <Link to="/" className="group flex items-center gap-3">
-          <Crest className="h-11 w-auto transition-transform duration-300 group-hover:-rotate-3" />
-          <span className="leading-none">
-            <span className="font-display block text-[1.35rem] font-bold tracking-tight text-navy-900">Ashgrove</span>
-            <span className="kicker block text-navy-600">Academy · Est. 1912</span>
-          </span>
-        </Link>
-
-        <nav className="ml-auto hidden items-center gap-6 xl:flex">
-          {navLinks.map((l) => (
-            <NavLink
-              key={l.to}
-              to={l.to}
-              end={l.to === "/"}
-              className={({ isActive }) =>
-                `link-draw text-[0.8rem] font-bold tracking-[0.08em] uppercase transition-colors ${
-                  isActive ? "text-gold-600 [background-size:100%_1.5px]" : "text-navy-800 hover:text-navy-950"
-                }`
-              }
-            >
-              {l.label}
-            </NavLink>
-          ))}
-        </nav>
-
-        <div className="ml-auto flex items-center gap-2.5 xl:ml-5">
-          <button
-            onClick={openSearch}
-            className="hidden items-center gap-2 border border-navy-900/20 px-3 py-2 text-[0.78rem] font-semibold text-navy-700 transition-all hover:border-navy-700 hover:text-navy-900 sm:flex"
-          >
-            <IcSearch className="h-4 w-4" />
-            Search
-            <kbd className="ml-1 border border-navy-900/15 bg-chalk-100 px-1.5 py-0.5 text-[0.62rem] text-navy-600">Ctrl K</kbd>
-          </button>
-          <button onClick={openSearch} aria-label="Search the site" className="border border-navy-900/20 p-2.5 text-navy-700 sm:hidden">
-            <IcSearch className="h-4 w-4" />
-          </button>
-          <Link to="/portal" className="btn btn-navy hidden !px-4 !py-2.5 md:inline-flex">
-            Portal
-          </Link>
-          <button
-            onClick={() => setDrawer(true)}
-            aria-label="Open menu"
-            className="border border-navy-900/20 p-2.5 text-navy-800 transition-colors hover:bg-navy-900 hover:text-chalk-50 xl:hidden"
-          >
-            <IcMenu className="h-5 w-5" />
-          </button>
-        </div>
-      </div>
-
-      {/* mobile drawer */}
-      <div
-        className={`fixed inset-0 z-[70] transition-opacity duration-300 xl:hidden ${drawer ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"}`}
+    <>
+      <header
+        className={`sticky top-0 z-[70] transition-all duration-300 ${
+          scrolled ? "bg-chalk-50/95 backdrop-blur-md shadow-card" : "bg-chalk-50"
+        } border-b border-pine-900/10`}
       >
-        <button aria-label="Close menu" className="absolute inset-0 bg-navy-950/70" onClick={() => setDrawer(false)} />
-        <div
-          className={`absolute right-0 top-0 flex h-full w-[min(22rem,88vw)] flex-col bg-navy-950 text-chalk-50 shadow-2xl transition-transform duration-300 ${
-            drawer ? "translate-x-0" : "translate-x-full"
-          }`}
-        >
-          <div className="flex items-center justify-between border-b border-navy-800 px-6 py-4">
-            <span className="kicker text-gold-300">Ashgrove Academy</span>
-            <button onClick={() => setDrawer(false)} aria-label="Close menu" className="p-1 text-navy-200 hover:text-chalk-50">
-              <IcClose className="h-6 w-6" />
-            </button>
-          </div>
-          <nav className="flex flex-1 flex-col gap-1 overflow-y-auto px-6 py-6">
-            {navLinks.map((l, i) => (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-[70px]">
+          <Link to="/" className="flex items-center gap-3 group">
+            <span className="transition-transform duration-300 group-hover:-rotate-3 group-hover:scale-105">
+              <IcLogo className="w-10 h-10" />
+            </span>
+            <span className="leading-none">
+              <span className="block font-display font-extrabold text-[1.18rem] tracking-tight text-pine-950">
+                Aldercrest Academy
+              </span>
+              <span className="block mt-1 text-[0.62rem] font-bold uppercase tracking-[0.24em] text-pine-600">
+                Est. 1962 · K–12
+              </span>
+            </span>
+          </Link>
+
+          <nav className="hidden lg:flex items-center gap-7" aria-label="Primary">
+            {NAV_LINKS.map((l) => (
               <NavLink
-                key={l.to}
-                to={l.to}
-                end={l.to === "/"}
+                key={l.path}
+                to={l.path}
+                end={l.path === "/"}
                 className={({ isActive }) =>
-                  `font-display group flex items-baseline gap-4 border-b border-navy-800/70 py-4 text-3xl font-semibold transition-colors ${
-                    isActive ? "text-gold-300" : "text-chalk-50 hover:text-gold-300"
+                  `link-slide text-[0.86rem] font-semibold transition-colors ${
+                    isActive ? "active text-pine-950" : "text-pine-900/70 hover:text-pine-950"
                   }`
                 }
-                style={{ transitionDelay: `${i * 20}ms` }}
               >
-                <span className="text-xs font-bold text-gold-500">{String(i + 1).padStart(2, "0")}</span>
                 {l.label}
               </NavLink>
             ))}
           </nav>
-          <div className="flex items-center gap-3 border-t border-navy-800 px-6 py-5">
-            <Link to="/portal" className="btn btn-gold flex-1 !px-4">
-              <IcUser className="h-4 w-4" /> Student Portal
+
+          <div className="flex items-center gap-2.5">
+            <button
+              onClick={onSearch}
+              aria-label="Search the site"
+              className="p-2.5 rounded-full border border-pine-900/15 text-pine-800 hover:bg-pine-900 hover:text-chalk-50 hover:border-pine-900 transition-all active:scale-95"
+            >
+              <IcSearch className="w-[18px] h-[18px]" />
+            </button>
+            <Link
+              to="/portal"
+              className="hidden sm:inline-flex items-center gap-2 rounded-full bg-gold-400 text-pine-950 font-bold text-sm px-5 py-2.5 hover:bg-gold-300 transition-all active:scale-[0.97] shadow-[0_6px_18px_-8px_rgba(209,138,31,0.7)]"
+            >
+              Student Portal
+              <IcArrow className="w-3.5 h-3.5" />
             </Link>
-            <button onClick={() => { setDrawer(false); openSearch(); }} className="btn btn-ghost-light !px-4">
-              <IcSearch className="h-4 w-4" /> Search
+            <button
+              onClick={() => setDrawer(true)}
+              aria-label="Open menu"
+              className="lg:hidden p-2.5 rounded-full border border-pine-900/15 text-pine-900 hover:bg-pine-900 hover:text-chalk-50 transition-colors"
+            >
+              <IcMenu className="w-5 h-5" />
             </button>
           </div>
         </div>
-      </div>
-    </header>
-  );
-}
+      </header>
 
-/* ---------- quick-access ledger strip (home) ---------- */
-export function QuickStrip() {
-  return (
-    <div className="border-b border-navy-900/10 bg-chalk-100">
-      <div className="mx-auto grid max-w-7xl grid-cols-1 divide-y divide-navy-900/10 sm:grid-cols-2 sm:divide-x lg:grid-cols-4 lg:divide-y-0">
-        {quickActions.map((q) => {
-          const inner = (
-            <>
-              <span className="flex items-baseline justify-between gap-3">
-                <span className="font-display text-lg font-semibold text-navy-900 transition-colors group-hover:text-gold-300">{q.label}</span>
-                <IcArrow className="h-4 w-4 shrink-0 text-gold-600 transition-all duration-300 group-hover:translate-x-1 group-hover:text-gold-300" />
-              </span>
-              <span className="mt-1 block text-[0.72rem] font-bold tracking-[0.14em] text-navy-500 uppercase transition-colors group-hover:text-navy-300">{q.meta}</span>
-            </>
-          );
-          const cls = "group block px-5 py-5 transition-colors hover:bg-navy-950 sm:px-6";
-          return q.to ? (
-            <Link key={q.label} to={q.to} className={cls}>{inner}</Link>
-          ) : (
+      {/* mobile drawer */}
+      <div
+        className={`fixed inset-0 z-[80] lg:hidden transition-all duration-400 ${
+          drawer ? "visible" : "invisible"
+        }`}
+      >
+        <button
+          aria-label="Close menu"
+          onClick={() => setDrawer(false)}
+          className={`absolute inset-0 bg-pine-1000/60 backdrop-blur-[2px] transition-opacity duration-400 ${
+            drawer ? "opacity-100" : "opacity-0"
+          }`}
+        />
+        <div
+          className={`absolute right-0 top-0 h-full w-[86%] max-w-sm bg-pine-950 text-chalk-50 flex flex-col transition-transform duration-400 ease-out ${
+            drawer ? "translate-x-0" : "translate-x-full"
+          }`}
+        >
+          <div className="flex items-center justify-between px-6 h-[70px] border-b border-pine-800">
+            <span className="font-display font-extrabold text-lg tracking-tight">Aldercrest</span>
             <button
-              key={q.label}
-              onClick={() => downloadResource(q.download!)}
-              className={`${cls} w-full cursor-pointer text-left`}
+              onClick={() => setDrawer(false)}
+              aria-label="Close menu"
+              className="p-2 rounded-full border border-pine-700 hover:bg-pine-800 transition-colors"
             >
-              {inner}
+              <IcClose className="w-5 h-5" />
             </button>
-          );
-        })}
+          </div>
+          <nav className="flex-1 overflow-y-auto px-6 py-8" aria-label="Mobile">
+            {NAV_LINKS.map((l, i) => (
+              <NavLink
+                key={l.path}
+                to={l.path}
+                end={l.path === "/"}
+                className={({ isActive }) =>
+                  `flex items-center justify-between py-3.5 border-b border-pine-800/70 font-display font-bold text-2xl tracking-tight transition-all duration-500 ${
+                    drawer ? "translate-x-0 opacity-100" : "translate-x-6 opacity-0"
+                  } ${isActive ? "text-gold-300" : "text-chalk-100 hover:text-gold-300 hover:pl-2"}`
+                }
+                style={{ transitionDelay: drawer ? `${80 + i * 45}ms` : "0ms" }}
+              >
+                {l.label}
+                <IcArrow className="w-5 h-5 opacity-40" />
+              </NavLink>
+            ))}
+            <Link
+              to="/portal"
+              className="mt-8 inline-flex items-center gap-2 rounded-full bg-gold-400 text-pine-950 font-bold px-6 py-3 hover:bg-gold-300 transition-colors"
+            >
+              Student Portal <IcArrow className="w-4 h-4" />
+            </Link>
+          </nav>
+          <div className="px-6 py-6 border-t border-pine-800 text-sm text-pine-100/70">
+            <p className="font-semibold text-chalk-100">Alder Hill Road, Aldercrest</p>
+            <p className="mt-1">+1 (555) 014-2026 · office@aldercrest.edu</p>
+          </div>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 
-/* ---------- footer ---------- */
-export function Footer() {
-  const [email, setEmail] = useState("");
-  const [subscribed, setSubscribed] = useState(false);
-  const [err, setErr] = useState("");
+/* ---------------- footer ---------------- */
 
-  const subscribe = (e: FormEvent) => {
+function Footer() {
+  const [email, setEmail] = useState("");
+  const [state, setState] = useState<"idle" | "error" | "done">("idle");
+  const navigate = useNavigate();
+
+  const subscribe = (e: React.FormEvent) => {
     e.preventDefault();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      setErr("Please enter a valid email address.");
+      setState("error");
       return;
     }
-    setErr("");
-    setSubscribed(true);
+    setState("done");
+    setEmail("");
   };
 
   return (
-    <footer className="blueprint relative bg-navy-950 text-navy-200">
-      <div className="mx-auto grid max-w-7xl gap-12 px-5 py-16 sm:px-8 lg:grid-cols-[1.3fr_0.8fr_0.9fr_1.2fr]">
+    <footer className="relative bg-pine-950 text-pine-100 noise overflow-hidden">
+      <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full border-[26px] border-pine-900/70 pointer-events-none" />
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 grid gap-12 md:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1.4fr]">
         <div>
           <div className="flex items-center gap-3">
-            <Crest className="h-14 w-auto" />
+            <IcLogo className="w-11 h-11" />
             <div>
-              <p className="font-display text-2xl font-bold text-chalk-50">Ashgrove Academy</p>
-              <p className="kicker mt-1 text-gold-300">Radices et Alae · Est. 1912</p>
+              <p className="font-display font-extrabold text-xl tracking-tight text-chalk-50">Aldercrest Academy</p>
+              <p className="text-[0.62rem] font-bold uppercase tracking-[0.24em] text-gold-300 mt-1">
+                Lumen et Radices
+              </p>
             </div>
           </div>
-          <p className="mt-5 max-w-sm text-sm leading-relaxed text-navy-200/90">
-            An independent day school for ages 4–18 on a 32-acre campus in Hartfield, Kent. Roots to grow, wings to soar — since a walled garden and one donkey in 1912.
+          <p className="mt-5 text-sm leading-relaxed text-pine-100/75 max-w-xs">
+            An independent day school for grades K–12 on Alder Hill — rooted in tradition, curious about
+            everything, and kind on purpose since 1962.
           </p>
-          <address className="mt-5 text-sm not-italic leading-relaxed">
-            {SCHOOL.address}
-            <br />
-            <a href={`tel:${SCHOOL.phone.replace(/[^+\d]/g, "")}`} className="link-draw text-gold-300">{SCHOOL.phone}</a>
-            <br />
-            <a href={`mailto:${SCHOOL.email}`} className="link-draw text-gold-300">{SCHOOL.email}</a>
-          </address>
+          <ul className="mt-6 space-y-2.5 text-sm">
+            <li className="flex items-center gap-3"><IcPin className="w-4 h-4 text-gold-300 shrink-0" /> 42 Alder Hill Road, Aldercrest</li>
+            <li className="flex items-center gap-3"><IcPhone className="w-4 h-4 text-gold-300 shrink-0" /> +1 (555) 014-2026</li>
+            <li className="flex items-center gap-3"><IcMail className="w-4 h-4 text-gold-300 shrink-0" /> office@aldercrest.edu</li>
+          </ul>
         </div>
 
         <div>
-          <p className="kicker text-gold-400">Explore</p>
-          <ul className="mt-5 space-y-2.5">
-            {navLinks.map((l) => (
-              <li key={l.to}>
-                <Link to={l.to} className="link-draw text-sm text-navy-100 transition-colors hover:text-chalk-50">
+          <p className="kicker text-gold-300">Explore</p>
+          <ul className="mt-5 space-y-2.5 text-sm">
+            {[...NAV_LINKS.slice(1), { label: "Student Portal", path: "/portal" }].map((l) => (
+              <li key={l.path}>
+                <Link to={l.path} className="hover:text-gold-300 transition-colors inline-flex items-center gap-2 group">
+                  <span className="w-1 h-1 rounded-full bg-gold-400/60 group-hover:bg-gold-300 transition-colors" />
                   {l.label}
                 </Link>
               </li>
             ))}
-            <li>
-              <Link to="/portal" className="link-draw text-sm text-gold-300">Student Portal</Link>
-            </li>
           </ul>
         </div>
 
         <div>
-          <p className="kicker text-gold-400">Downloads</p>
-          <ul className="mt-5 space-y-2.5">
+          <p className="kicker text-gold-300">Quick links</p>
+          <ul className="mt-5 space-y-2.5 text-sm">
             {[
-              { id: "prospectus", label: "Prospectus 2026" },
-              { id: "application-form", label: "Registration form" },
-              { id: "term-calendar", label: "Term dates" },
-              { id: "uniform-list", label: "Uniform list" },
-              { id: "bus-routes", label: "Bus routes" },
-            ].map((r) => (
-              <li key={r.id}>
-                <button onClick={() => downloadResource(r.id)} className="link-draw cursor-pointer text-left text-sm text-navy-100 transition-colors hover:text-chalk-50">
-                  {r.label}
+              { label: "Tuition & bursaries", path: "/admissions" },
+              { label: "School calendar", path: "/news" },
+              { label: "Bus routes", path: "/contact" },
+              { label: "Downloads & resources", path: "/academics" },
+              { label: "Photo gallery", path: "/gallery" },
+            ].map((l) => (
+              <li key={l.label}>
+                <button
+                  onClick={() => navigate(l.path)}
+                  className="hover:text-gold-300 transition-colors inline-flex items-center gap-2 group text-left"
+                >
+                  <span className="w-1 h-1 rounded-full bg-gold-400/60 group-hover:bg-gold-300 transition-colors" />
+                  {l.label}
                 </button>
               </li>
             ))}
@@ -275,94 +255,104 @@ export function Footer() {
         </div>
 
         <div>
-          <p className="kicker text-gold-400">The Grove Gazette</p>
-          <p className="mt-5 text-sm leading-relaxed text-navy-200/90">
-            Our termly letter: what the pupils made, broke and discovered. One email a term, no more.
+          <p className="kicker text-gold-300">The Aldercrest Letter</p>
+          <p className="mt-5 text-sm text-pine-100/75 leading-relaxed">
+            One email a fortnight: news, fixtures, concert dates and the occasional bee update. No noise.
           </p>
-          {subscribed ? (
-            <div className="rise mt-5 border border-moss-600 bg-moss-700/25 px-4 py-3.5 text-sm text-chalk-50">
-              Welcome aboard — the next Gazette arrives at half-term.
-            </div>
+          {state === "done" ? (
+            <p className="mt-4 rounded-lg bg-pine-900 border border-pine-700 px-4 py-3 text-sm text-gold-300 font-semibold">
+              Welcome aboard — first letter arrives Friday.
+            </p>
           ) : (
-            <form onSubmit={subscribe} className="mt-5" noValidate>
-              <div className="flex">
+            <form onSubmit={subscribe} className="mt-4">
+              <div className="flex rounded-full bg-pine-900 border border-pine-700 p-1 focus-within:border-gold-400 transition-colors">
                 <input
                   type="email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@example.co.uk"
-                  aria-label="Email address for newsletter"
-                  className="min-w-0 flex-1 border border-navy-700 bg-navy-900 px-3.5 py-2.5 text-sm text-chalk-50 placeholder:text-navy-400 focus:border-gold-400 focus:outline-none"
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    if (state === "error") setState("idle");
+                  }}
+                  placeholder="you@example.com"
+                  aria-label="Email address"
+                  className="flex-1 min-w-0 bg-transparent px-4 text-sm text-chalk-50 placeholder:text-pine-300/50 outline-none"
                 />
-                <button type="submit" className="shrink-0 bg-gold-400 px-4 text-[0.72rem] font-bold tracking-[0.12em] text-navy-950 uppercase transition-colors hover:bg-gold-300">
-                  Sign up
+                <button
+                  type="submit"
+                  className="shrink-0 rounded-full bg-gold-400 text-pine-950 text-sm font-bold px-5 py-2 hover:bg-gold-300 transition-colors active:scale-95"
+                >
+                  Join
                 </button>
               </div>
-              {err && <p className="mt-2 text-xs text-gold-300">{err}</p>}
+              {state === "error" && (
+                <p className="mt-2 text-xs font-semibold text-gold-300">Please enter a valid email address.</p>
+              )}
             </form>
           )}
         </div>
       </div>
 
-      <div className="border-t border-navy-800">
-        <div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-3 px-5 py-5 text-[0.72rem] tracking-wide text-navy-400 sm:flex-row sm:items-center sm:px-8">
-          <p>© {new Date().getFullYear()} The Ashgrove Academy Trust · Registered charity no. 101214</p>
-          <div className="flex gap-5">
-            <Link to="/about" className="link-draw hover:text-navy-200">Safeguarding</Link>
-            <Link to="/about" className="link-draw hover:text-navy-200">ISI Reports</Link>
-            <Link to="/contact" className="link-draw hover:text-navy-200">Privacy</Link>
-          </div>
+      <div className="relative border-t border-pine-800">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-pine-100/60">
+          <p>© {new Date().getFullYear()} Aldercrest Academy. A fictional school, lovingly built.</p>
+          <p className="flex items-center gap-4">
+            <span className="font-semibold text-pine-100/80">NAIS · Cognia · Round Square</span>
+          </p>
         </div>
       </div>
     </footer>
   );
 }
 
-/* ---------- scroll restore + layout shell ---------- */
-export function ScrollToTop() {
-  const { pathname } = useLocation();
-  useEffect(() => {
-    window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior });
-  }, [pathname]);
-  return null;
+/* ---------------- back to top ---------------- */
+
+function BackToTop() {
+  const show = useScrolled(600);
+  return (
+    <button
+      onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+      aria-label="Back to top"
+      className={`fixed bottom-6 right-6 z-[60] w-11 h-11 rounded-full bg-pine-900 text-gold-300 grid place-items-center shadow-lift transition-all duration-300 hover:bg-pine-800 active:scale-90 ${
+        show ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 pointer-events-none"
+      }`}
+    >
+      <IcArrowUp className="w-4 h-4" />
+    </button>
+  );
 }
 
-export function Layout({ children }: { children: ReactNode }) {
+/* ---------------- layout shell ---------------- */
+
+export default function Layout({ children }: { children: React.ReactNode }) {
   const [searchOpen, setSearchOpen] = useState(false);
+  const location = useLocation();
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior });
+  }, [location.pathname]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
+      const el = e.target as HTMLElement;
+      const typing = ["INPUT", "TEXTAREA", "SELECT"].includes(el.tagName) || el.isContentEditable;
+      if (e.key === "/" && !typing) {
         e.preventDefault();
-        setSearchOpen((s) => !s);
+        setSearchOpen(true);
       }
-      if (e.key === "/") {
-        const t = e.target as HTMLElement;
-        if (t.tagName !== "INPUT" && t.tagName !== "TEXTAREA" && !t.isContentEditable) {
-          e.preventDefault();
-          setSearchOpen(true);
-        }
-      }
+      if (e.key === "Escape") setSearchOpen(false);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
   return (
-    <SearchCtx.Provider value={{ openSearch: () => setSearchOpen(true) }}>
-      <div className="noise min-h-screen bg-chalk-50 text-ink">
-        <a
-          href="#main"
-          className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:bg-gold-400 focus:px-4 focus:py-2 focus:font-bold focus:text-navy-950"
-        >
-          Skip to content
-        </a>
-        <TopBar />
-        <Header />
-        <main id="main">{children}</main>
-        <Footer />
-        <SearchOverlay open={searchOpen} onClose={() => setSearchOpen(false)} />
-      </div>
-    </SearchCtx.Provider>
+    <div className="min-h-screen flex flex-col bg-chalk-50">
+      <Ticker />
+      <Nav onSearch={() => setSearchOpen(true)} />
+      <main className="flex-1">{children}</main>
+      <Footer />
+      <BackToTop />
+      <SearchOverlay open={searchOpen} onClose={() => setSearchOpen(false)} />
+    </div>
   );
 }

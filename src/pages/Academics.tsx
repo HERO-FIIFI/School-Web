@@ -1,212 +1,205 @@
-import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLink, Chip, PageHero, Reveal, SectionHead } from "../components/ui";
-import { IcArrow, IcBook, IcBrush, IcBall, IcCheck, IcChevD, IcCompass, IcDownload, IcFlask, IcGlobe, IcMusic, IcRuler } from "../components/icons";
-import { curriculumAreas, divisions, downloadResource, portalTimetable } from "../lib/data";
-
-const iconMap: Record<string, (p: { className?: string }) => React.JSX.Element> = {
-  book: IcBook,
-  ruler: IcRuler,
-  flask: IcFlask,
-  globe: IcGlobe,
-  compass: IcCompass,
-  brush: IcBrush,
-  music: IcMusic,
-  ball: IcBall,
-};
-
-const wednesday = portalTimetable[2];
+import { DEPARTMENTS, PROGRAMS, RESOURCES, STAGES } from "../lib/data";
+import { downloadPdf } from "../lib/pdf";
+import { Accordion, DownloadBtn, Reveal, SectionHead } from "../components/ui";
+import { DEPT_ICONS, IcArrow, IcCap, IcDoc } from "../components/icons";
 
 export default function Academics() {
-  const [open, setOpen] = useState<string | null>(divisions[1].id);
-
   return (
     <>
-      <PageHero
-        kicker="Academics · ages 4–18"
-        title={[<>Curious minds,</>, <em key="t" className="font-display italic text-gold-300">carefully taught</em>]}
-        lede="An average class of 17, specialists from Year 3, and a curriculum that treats questions as seriously as answers. Here is how the learning works."
-      />
-
-      {/* divisions — expandable ledger */}
-      <section className="bg-chalk-50">
-        <div className="mx-auto max-w-7xl px-5 py-20 sm:px-8">
-          <SectionHead
-            kicker="The four schools"
-            title={["One campus,", "four chapters"]}
-            lede="Choose a school to see how it works. Every pupil moves up at their own pace — around a third join at non-standard points."
-          />
-          <div className="mt-12 border-t-2 border-navy-900">
-            {divisions.map((d) => {
-              const isOpen = open === d.id;
-              return (
-                <div key={d.id} className={`border-b-2 transition-colors ${isOpen ? "border-navy-900 bg-navy-950 text-chalk-50" : "border-navy-900/15"}`}>
-                  <button
-                    onClick={() => setOpen(isOpen ? null : d.id)}
-                    aria-expanded={isOpen}
-                    className="flex w-full cursor-pointer items-center gap-5 px-2 py-6 text-left sm:gap-8 sm:px-5"
-                  >
-                    <span className={`font-display text-4xl leading-none font-bold sm:text-5xl ${isOpen ? "text-gold-400" : "text-navy-300"}`}>{d.num}</span>
-                    <span className="flex-1">
-                      <span className={`font-display block text-2xl font-bold sm:text-3xl ${isOpen ? "text-chalk-50" : "text-navy-900"}`}>{d.name}</span>
-                      <span className={`kicker mt-1 block !text-[0.6rem] ${isOpen ? "text-gold-300" : "text-gold-600"}`}>{d.ages} · {d.years}</span>
-                    </span>
-                    <span className={`grid h-10 w-10 shrink-0 place-items-center border transition-all duration-300 ${isOpen ? "rotate-180 border-gold-400 bg-gold-400 text-navy-950" : "border-navy-900/25 text-navy-700"}`}>
-                      <IcChevD className="h-5 w-5" />
-                    </span>
-                  </button>
-                  <div className={`grid transition-[grid-template-rows] duration-400 ease-out ${isOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}>
-                    <div className="overflow-hidden">
-                      <div className="grid gap-8 px-2 pb-8 sm:grid-cols-2 sm:px-5 lg:grid-cols-[1.2fr_1fr]">
-                        <div>
-                          <p className={`max-w-xl leading-relaxed ${isOpen ? "text-navy-200" : ""}`}>{d.blurb}</p>
-                          <ul className="mt-5 space-y-2.5">
-                            {d.highlights.map((h) => (
-                              <li key={h} className="flex items-center gap-3 text-sm font-semibold text-chalk-50">
-                                <span className="grid h-6 w-6 shrink-0 place-items-center bg-gold-400 text-navy-950"><IcCheck className="h-3.5 w-3.5" /></span>
-                                {h}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                        <div>
-                          <p className="kicker text-gold-300">Signature subjects</p>
-                          <div className="mt-3 flex flex-wrap gap-2">
-                            {d.subjects.map((s) => (
-                              <span key={s} className="border border-navy-700 px-3 py-1.5 text-[0.78rem] font-semibold text-navy-100">{s}</span>
-                            ))}
-                          </div>
-                          <Link to="/admissions" className="link-draw mt-6 inline-block text-[0.72rem] font-bold tracking-[0.14em] text-gold-300 uppercase">
-                            Entry points for this school →
-                          </Link>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+      {/* header */}
+      <section className="relative bg-pine-950 text-chalk-50 overflow-hidden noise">
+        <div className="absolute inset-0 bg-grid-dark" />
+        <div className="absolute left-[-140px] bottom-[-160px] w-[420px] h-[420px] rounded-full border-[30px] border-pine-900/80 pointer-events-none" />
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-24">
+          <Reveal><p className="kicker text-gold-300">Academics</p></Reveal>
+          <Reveal delay={90}>
+            <h1 className="mt-5 font-display font-extrabold tracking-tight leading-[1.0] text-4xl sm:text-5xl lg:text-[3.4rem] max-w-3xl">
+              Rigorous, humane, and <span className="text-gold-300">hands-on.</span>
+            </h1>
+          </Reveal>
+          <Reveal delay={180}>
+            <p className="mt-6 max-w-2xl text-[1.05rem] leading-relaxed text-pine-100/85">
+              Eight departments, 24 Upper School electives and one rule of thumb: if a child can build it, stage
+              it, or argue it — they will. Here's how the curriculum is organised.
+            </p>
+          </Reveal>
+          <Reveal delay={250}>
+            <div className="mt-8 flex flex-wrap gap-3 text-sm font-bold">
+              {[
+                { t: "The three stages", h: "#stages" },
+                { t: "Departments", h: "#departments" },
+                { t: "Signature programmes", h: "#programmes" },
+                { t: "Downloads", h: "#downloads" },
+              ].map((c) => (
+                <button
+                  key={c.h}
+                  onClick={() => document.getElementById(c.h.slice(1))?.scrollIntoView({ behavior: "smooth", block: "start" })}
+                  className="rounded-full border border-pine-700 bg-pine-900/60 px-4 py-2 hover:bg-gold-400 hover:text-pine-950 hover:border-gold-400 transition-colors"
+                >
+                  {c.t}
+                </button>
+              ))}
+            </div>
+          </Reveal>
         </div>
       </section>
 
-      {/* curriculum areas */}
-      <section className="border-y-2 border-navy-900 bg-chalk-100">
-        <div className="mx-auto max-w-7xl px-5 py-20 sm:px-8">
+      {/* stages */}
+      <section id="stages" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-28">
+        <SectionHead
+          kicker="The three stages"
+          title={<>Built for the age your child actually is.</>}
+          body="Each stage runs its own timetable, pastoral system and buildings — with handovers rehearsed so carefully that children barely notice them."
+        />
+        <div className="mt-14 space-y-8">
+          {STAGES.map((s, i) => (
+            <Reveal key={s.num} delay={i * 80}>
+              <div className="group grid lg:grid-cols-[1.25fr_1fr] rounded-2xl border border-pine-900/10 bg-white/70 overflow-hidden hover:shadow-lift transition-shadow">
+                <div className="p-8 sm:p-10">
+                  <p className="flex items-baseline gap-4">
+                    <span className="font-display font-extrabold text-5xl text-pine-200 group-hover:text-gold-400 transition-colors leading-none">{s.num}</span>
+                    <span>
+                      <span className="block font-display font-bold text-2xl sm:text-3xl tracking-tight text-pine-950">{s.name}</span>
+                      <span className="block text-[0.7rem] font-extrabold uppercase tracking-[0.18em] text-gold-600 mt-1">{s.grades}</span>
+                    </span>
+                  </p>
+                  <p className="mt-5 text-ink-soft leading-relaxed max-w-xl">{s.blurb}</p>
+                  <ul className="mt-6 space-y-2.5">
+                    {s.points.map((p) => (
+                      <li key={p} className="flex items-start gap-3 text-sm font-medium text-pine-900">
+                        <span className="mt-1.5 w-2 h-2 rotate-45 bg-gold-400 shrink-0" />
+                        {p}
+                      </li>
+                    ))}
+                  </ul>
+                  <div className="mt-6 flex flex-wrap gap-2">
+                    {s.chips.map((c) => (
+                      <span key={c} className="rounded-full bg-pine-50 border border-pine-900/10 px-3 py-1 text-xs font-semibold text-pine-800">{c}</span>
+                    ))}
+                  </div>
+                </div>
+                <div className="img-zoom relative min-h-[240px]">
+                  <img src={s.img} alt={s.name} className="absolute inset-0 w-full h-full object-cover" />
+                  <span className="absolute bottom-4 left-4 bg-pine-950/85 backdrop-blur rounded-full px-4 py-1.5 text-xs font-bold text-gold-300">
+                    {s.name} · Aldercrest
+                  </span>
+                </div>
+              </div>
+            </Reveal>
+          ))}
+        </div>
+      </section>
+
+      {/* departments */}
+      <section id="departments" className="relative bg-chalk-100 border-y border-pine-900/10">
+        <div className="absolute inset-0 bg-grid-light opacity-50" />
+        <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-28">
           <SectionHead
-            kicker="What's taught"
-            title={["Eight departments,", "no silos"]}
-            lede="Departments borrow from each other constantly — the physics of music, the geography of history, the chemistry of cooking."
+            kicker="Departments"
+            title={<>Eight departments, zero silos.</>}
+            body="History borrows the science labs, drama borrows the choir, and everyone borrows the Maker Commons. Tap a department for its current course list."
           />
-          <div className="mt-12 grid gap-px border-2 border-navy-900 bg-navy-900/15 sm:grid-cols-2">
-            {curriculumAreas.map((c, i) => {
-              const Icon = iconMap[c.icon] ?? IcBook;
-              return (
-                <Reveal key={c.name} delay={(i % 2) * 80} className="group flex gap-5 bg-chalk-50 p-6 transition-colors hover:bg-navy-950 sm:p-7">
-                  <span className="grid h-12 w-12 shrink-0 place-items-center border-2 border-navy-900 text-navy-800 transition-all duration-300 group-hover:rotate-6 group-hover:border-gold-400 group-hover:bg-gold-400 group-hover:text-navy-950">
-                    <Icon className="h-6 w-6" />
+          <Reveal delay={120}>
+            <div className="mt-12 rounded-2xl border border-pine-900/10 bg-chalk-50 px-6 sm:px-8 shadow-card">
+              <Accordion
+                defaultOpen={0}
+                items={DEPARTMENTS.map((dep) => {
+                  const Icon = DEPT_ICONS[dep.icon];
+                  return {
+                    title: (
+                      <span className="flex items-center gap-4">
+                        <span className="w-10 h-10 shrink-0 rounded-lg bg-pine-900 text-gold-300 grid place-items-center">
+                          <Icon className="w-5 h-5" />
+                        </span>
+                        <span>
+                          {dep.name}
+                          <span className="block text-xs font-semibold text-ink-soft mt-0.5 normal-case tracking-normal">
+                            Head of department: {dep.head}
+                          </span>
+                        </span>
+                      </span>
+                    ),
+                    body: (
+                      <div className="flex flex-wrap gap-2 pt-1">
+                        {dep.courses.map((c) => (
+                          <span key={c} className="rounded-full border border-pine-900/15 bg-white px-3.5 py-1.5 text-sm font-medium text-pine-900">
+                            {c}
+                          </span>
+                        ))}
+                      </div>
+                    ),
+                  };
+                })}
+              />
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* signature programmes */}
+      <section id="programmes" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-28">
+        <div className="grid lg:grid-cols-[1fr_1.35fr] gap-12">
+          <div className="lg:sticky lg:top-28 self-start">
+            <SectionHead
+              kicker="Signature programmes"
+              title={<>The things Aldercrest is known for.</>}
+              body="Five commitments we make to every family — written into the school development plan and reported on to governors each term."
+            />
+            <Reveal delay={150}>
+              <Link to="/admissions" className="mt-7 inline-flex items-center gap-2 font-bold text-pine-800 hover:text-gold-600 transition-colors group">
+                Ask us about any of these <IcArrow className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </Link>
+            </Reveal>
+          </div>
+          <div>
+            {PROGRAMS.map((p, i) => (
+              <Reveal key={p.title} delay={i * 70}>
+                <div className="group flex gap-6 items-start border-t border-pine-900/10 py-7 px-3 -mx-3 hover:bg-pine-50/70 rounded-lg transition-colors">
+                  <span className="shrink-0 w-11 h-11 rounded-full bg-gold-400 text-pine-950 font-display font-extrabold grid place-items-center group-hover:bg-pine-900 group-hover:text-gold-300 transition-colors">
+                    {i + 1}
                   </span>
                   <span>
-                    <h3 className="font-display text-xl font-bold text-navy-900 transition-colors group-hover:text-chalk-50">{c.name}</h3>
-                    <p className="mt-1.5 text-[0.9rem] leading-relaxed text-ink/65 transition-colors group-hover:text-navy-200">{c.desc}</p>
+                    <span className="flex items-center gap-3 font-display font-bold text-xl text-pine-950">
+                      {p.title}
+                      <IcCap className="w-5 h-5 text-gold-500" />
+                    </span>
+                    <span className="mt-2 block text-ink-soft leading-relaxed max-w-xl">{p.body}</span>
                   </span>
-                </Reveal>
-              );
-            })}
-          </div>
-        </div>
-      </section>
-
-      {/* sample day + assessment */}
-      <section className="bg-chalk-50">
-        <div className="mx-auto grid max-w-7xl gap-14 px-5 py-20 sm:px-8 lg:grid-cols-[1.2fr_1fr] lg:gap-16">
-          <div>
-            <SectionHead
-              kicker="A day in the life"
-              title={["Wednesday,", "Period by period"]}
-              lede="A real Year 9 Wednesday — the kind of day that ends with mud on the boots and a tune in the head."
-            />
-            <Reveal delay={200}>
-              <div className="mt-8 overflow-x-auto border-2 border-navy-900 bg-chalk-50">
-                <table className="tbl min-w-[32rem]">
-                  <thead>
-                    <tr className="bg-navy-950 text-navy-200">
-                      <th className="!text-gold-300">Period</th>
-                      <th className="!text-gold-300">Lesson</th>
-                      <th className="!text-gold-300">Room</th>
-                      <th className="!text-gold-300">Teacher</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {wednesday.lessons.map((l, i) => (
-                      <tr key={l.time}>
-                        <td className="font-mono text-xs font-bold text-navy-600">P{i + 1} · {l.time}</td>
-                        <td className="font-display font-semibold text-navy-900">{l.subject}</td>
-                        <td>{l.room}</td>
-                        <td className="text-ink/60">{l.teacher}</td>
-                      </tr>
-                    ))}
-                    <tr className="bg-gold-100/70">
-                      <td className="font-mono text-xs font-bold text-navy-600">15:30</td>
-                      <td className="font-display font-semibold text-navy-900">Clubs & supervised prep</td>
-                      <td>Everywhere</td>
-                      <td className="text-ink/60">48 options, from chess to robotics</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </Reveal>
-          </div>
-
-          <div>
-            <SectionHead kicker="Assessment & reporting" title={["Honest marks,", "kinder margins"]} />
-            <ol className="mt-8 space-y-0 border-t-2 border-navy-900">
-              {[
-                ["01", "Reports twice a term", "Subject grades, an attitude-to-learning score, and one sentence a parent will actually read. No algorithm fog."],
-                ["02", "Consultations", "Two evenings a term, bookable through the portal — fifteen unhurried minutes with each teacher."],
-                ["03", "Public examinations", "28 GCSEs and 26 A-levels on offer; mock windows posted to pupils' portals two weeks ahead."],
-                ["04", "Pupil-led reviews", "From Year 5, pupils present their own progress — the proudest, most nerve-wracking ten minutes of the year."],
-              ].map(([n, t, d], i) => (
-                <Reveal as="li" key={n} delay={i * 70} className="group border-b-2 border-navy-900/15 py-5">
-                  <div className="flex items-baseline gap-5">
-                    <span className="font-display text-2xl font-bold text-navy-300 transition-colors group-hover:text-gold-600">{n}</span>
-                    <div>
-                      <h3 className="font-display text-lg font-bold text-navy-900">{t}</h3>
-                      <p className="mt-1 text-[0.88rem] leading-relaxed text-ink/65">{d}</p>
-                    </div>
-                  </div>
-                </Reveal>
-              ))}
-            </ol>
-            <Reveal delay={250}>
-              <div className="mt-8 flex items-center gap-4 border-2 border-navy-900 bg-gold-100 p-5">
-                <IcDownload className="h-7 w-7 shrink-0 text-navy-800" />
-                <div className="flex-1">
-                  <p className="font-display font-bold text-navy-900">Prospectus 2026</p>
-                  <p className="text-xs text-ink/60">The whole academic picture on one honest page.</p>
                 </div>
-                <button onClick={() => downloadResource("prospectus")} className="btn btn-navy !px-4 !py-2.5">Download</button>
-              </div>
-            </Reveal>
-            <Reveal delay={320}>
-              <div className="mt-6">
-                <ArrowLink to="/portal">Pupils: see your live timetable in the portal</ArrowLink>
-              </div>
-            </Reveal>
+              </Reveal>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="blueprint bg-navy-950 text-chalk-50">
-        <div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-8 px-5 py-16 sm:px-8 lg:flex-row lg:items-center">
-          <div>
-            <p className="kicker text-gold-300">Ready when they are</p>
-            <h2 className="font-display mt-3 max-w-2xl text-3xl leading-tight font-semibold sm:text-5xl">Entry at 4+, 7+, 11+, 13+ and 16+ — <em className="italic text-gold-300">and in between.</em></h2>
+      {/* downloads */}
+      <section id="downloads" className="relative bg-pine-950 text-chalk-50 noise overflow-hidden">
+        <div className="absolute inset-0 bg-grid-dark" />
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-24">
+          <div className="flex flex-wrap items-end justify-between gap-6">
+            <SectionHead
+              dark
+              kicker="Downloads & resources"
+              title={<>Take the paperwork with you.</>}
+              body="Catalogues, calendars and guides — generated fresh as PDFs whenever you need them."
+            />
           </div>
-          <div className="flex shrink-0 flex-wrap gap-4">
-            <Link to="/admissions" className="btn btn-gold">Admissions guide <IcArrow className="h-4 w-4" /></Link>
-            <Link to="/contact" className="btn btn-ghost-light">Ask a question</Link>
+          <div className="mt-12 grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            {RESOURCES.slice(0, 8).map((r, i) => (
+              <Reveal key={r.file} delay={i * 60}>
+                <div className="group rounded-xl border border-pine-800 bg-pine-900/60 p-6 flex flex-col h-full hover:border-gold-400/70 hover:-translate-y-1 transition-all">
+                  <span className="w-11 h-11 rounded-lg bg-pine-950 border border-pine-700 text-gold-300 grid place-items-center group-hover:bg-gold-400 group-hover:text-pine-950 group-hover:border-gold-400 transition-colors">
+                    <IcDoc className="w-5 h-5" />
+                  </span>
+                  <p className="mt-4 font-bold leading-snug">{r.title}</p>
+                  <p className="mt-1 text-xs text-pine-100/60">{r.type} · {r.meta}</p>
+                  <div className="mt-auto pt-5">
+                    <DownloadBtn onClick={() => downloadPdf(r.file, r.title, r.lines)} />
+                  </div>
+                </div>
+              </Reveal>
+            ))}
           </div>
         </div>
       </section>

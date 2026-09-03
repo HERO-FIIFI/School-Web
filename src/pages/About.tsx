@@ -1,144 +1,160 @@
 import { Link } from "react-router-dom";
-import { CountUp, FramedImage, PageHero, Reveal, SectionHead, ArrowLink } from "../components/ui";
-import { IcArrow } from "../components/icons";
-import { IMG, milestones, staff, values } from "../lib/data";
+import { ACCREDITATIONS, CAMPUS_FACTS, IMG, LEADERSHIP, MILESTONES, VALUES } from "../lib/data";
+import { Reveal, SectionHead, StatBlock } from "../components/ui";
+import { DEPT_ICONS, IcArrow, IcLogo, IcShield } from "../components/icons";
 
 export default function About() {
   return (
     <>
-      <PageHero
-        kicker="About us · since 1912"
-        title={[<>A school grown from</>, <em key="g" className="font-display italic text-gold-300">a walled garden</em>]}
-        lede="Fourteen pupils, two mistresses and one garden donkey — that was the whole of Ashgrove in 1912. The donkey's descendants have retired, but almost everything else is still here."
-      />
-
-      {/* mission */}
-      <section className="bg-chalk-50">
-        <div className="mx-auto grid max-w-7xl gap-14 px-5 py-20 sm:px-8 lg:grid-cols-2 lg:gap-20">
+      {/* header band */}
+      <section className="relative bg-pine-950 text-chalk-50 overflow-hidden noise">
+        <div className="absolute inset-0 bg-grid-dark" />
+        <div className="absolute right-[-140px] top-[-140px] w-[440px] h-[440px] rounded-full border-[30px] border-pine-900/80 pointer-events-none" />
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-28 grid lg:grid-cols-[1.3fr_1fr] gap-12 items-center">
           <div>
-            <SectionHead
-              kicker="What we're for"
-              title={["Character first,", "and the grades follow"]}
-            />
+            <Reveal><p className="kicker text-gold-300">About us</p></Reveal>
+            <Reveal delay={90}>
+              <h1 className="mt-5 font-display font-extrabold tracking-tight leading-[1.0] text-4xl sm:text-5xl lg:text-[3.6rem]">
+                A school with roots,
+                <br />
+                and <span className="text-gold-300">reach.</span>
+              </h1>
+            </Reveal>
             <Reveal delay={180}>
-              <p className="mt-7 leading-relaxed text-ink/70 first-letter:font-display first-letter:float-left first-letter:mr-3 first-letter:text-6xl first-letter:leading-[0.8] first-letter:font-bold first-letter:text-navy-900">
-                Edith Ashworth founded this school on a simple conviction: that children learn best where they are known.
-                A century on, that conviction runs everything — class sizes capped at 22, tutors who teach the same family
-                twice, houses named after the four oak trees that predate the school itself.
+              <p className="mt-6 max-w-xl text-[1.05rem] leading-relaxed text-pine-100/85">
+                Founded in 1962 with 34 pupils and a borrowed piano, Aldercrest has grown into a K–12 community
+                of 1,140 — without ever losing the habit of knowing every child by name.
               </p>
             </Reveal>
             <Reveal delay={260}>
-              <p className="mt-5 leading-relaxed text-ink/70">
-                We are unapologetically academic — 28 GCSE options, triple science as standard, a university office that has
-                guided offers from Oxford to the Royal Academy — but we measure ourselves on what pupils make, fix, grow and
-                organise as much as on what they score.
-              </p>
-            </Reveal>
-            <Reveal delay={320}>
-              <div className="mt-9 grid grid-cols-3 divide-x divide-navy-900/15 border-2 border-navy-900 bg-navy-950 text-center">
-                {([[32, "acres of campus"], [4, "houses, four oaks"], [6, "specialist schools & wings"]] as [number, string][]).map(([n, l]) => (
-                  <div key={l} className="px-3 py-6">
-                    <p className="font-display text-3xl font-bold text-gold-300"><CountUp to={n} /></p>
-                    <p className="mt-1.5 px-1 text-[0.62rem] font-bold tracking-[0.12em] text-navy-300 uppercase">{l}</p>
-                  </div>
+              <div className="mt-8 flex flex-wrap gap-3">
+                {ACCREDITATIONS.map((a) => (
+                  <span key={a} className="inline-flex items-center gap-2 rounded-full border border-pine-700 bg-pine-900/60 px-4 py-2 text-xs font-bold text-pine-100">
+                    <IcShield className="w-3.5 h-3.5 text-gold-300" /> {a}
+                  </span>
                 ))}
               </div>
             </Reveal>
           </div>
-          <Reveal delay={150} className="self-start lg:sticky lg:top-28">
-            <FramedImage src={IMG.classroom} alt="Seminar discussion in a Middle School classroom" className="aspect-[4/5] border-2 border-navy-900 shadow-[12px_12px_0_rgba(12,35,64,0.12)]" />
-            <p className="mt-3 text-[0.7rem] font-bold tracking-[0.16em] text-navy-500 uppercase">Room 12 — Socratic circle, Year 9, a Tuesday</p>
+          <Reveal delay={200}>
+            <div className="relative hidden lg:block">
+              <div className="absolute -inset-3 translate-x-5 translate-y-5 rounded-xl border-2 border-gold-400/60" />
+              <img src={IMG.library} alt="The Whitmore Library" className="relative rounded-xl border-4 border-pine-900 shadow-lift w-full h-[380px] object-cover" />
+              <p className="absolute bottom-4 left-4 bg-pine-950/85 backdrop-blur rounded-full px-4 py-1.5 text-xs font-bold text-gold-300">
+                The Whitmore Library · since 1971
+              </p>
+            </div>
           </Reveal>
         </div>
       </section>
 
-      {/* values ledger */}
-      <section className="border-y-2 border-navy-900 bg-navy-950 text-chalk-50">
-        <div className="mx-auto max-w-7xl px-5 py-20 sm:px-8">
-          <SectionHead tone="light" kicker="The four commitments" title={["What we promise", "every pupil"]} />
-          <div className="mt-10 border-t border-navy-800">
-            {values.map((v, i) => (
-              <Reveal key={v.num} delay={i * 80} className="group grid gap-4 border-b border-navy-800 py-8 transition-colors hover:bg-navy-900/60 sm:grid-cols-[6rem_1fr_2fr] sm:gap-8 sm:px-4">
-                <p className="font-display text-5xl font-bold text-navy-700 transition-colors group-hover:text-gold-400">{v.num}</p>
-                <h3 className="font-display text-2xl font-bold text-chalk-50 sm:text-3xl">{v.name}</h3>
-                <p className="max-w-2xl leading-relaxed text-navy-200">{v.text}</p>
+      {/* mission & values */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-28 grid lg:grid-cols-[1fr_1.25fr] gap-14">
+        <div className="lg:sticky lg:top-28 self-start">
+          <SectionHead
+            kicker="Mission & values"
+            title={<>Four words we keep coming back to.</>}
+            body="They're painted in the Founders Hall archway and they're on every report card: Rooted, Curious, Kind, Brave. Not a slogan — a marking scheme."
+          />
+          <Reveal delay={160}>
+            <div className="mt-8 rounded-xl bg-pine-950 text-chalk-50 p-7 relative overflow-hidden">
+              <IcLogo className="absolute -right-4 -bottom-4 w-28 h-28 opacity-20" />
+              <p className="kicker text-gold-300">Our mission</p>
+              <p className="mt-4 font-display font-semibold text-xl leading-snug">
+                To send young people into the world well-rooted and wide-awake — scholars, makers, neighbours.
+              </p>
+            </div>
+          </Reveal>
+        </div>
+        <div>
+          {VALUES.map((v, i) => {
+            const Icon = DEPT_ICONS[v.icon];
+            return (
+              <Reveal key={v.title} delay={i * 90}>
+                <div className="group flex gap-6 border-t border-pine-900/10 py-8 hover:bg-pine-50/70 rounded-xl px-4 -mx-4 transition-colors">
+                  <span className="shrink-0 w-14 h-14 rounded-xl bg-pine-900 text-gold-300 grid place-items-center group-hover:bg-gold-400 group-hover:text-pine-950 transition-colors">
+                    <Icon className="w-6 h-6" />
+                  </span>
+                  <span>
+                    <span className="flex items-baseline gap-3">
+                      <span className="font-display font-extrabold text-2xl text-pine-950 tracking-tight">{v.title}</span>
+                      <span className="text-[0.68rem] font-extrabold text-pine-900/40">0{i + 1}</span>
+                    </span>
+                    <span className="mt-2 block max-w-lg text-ink-soft leading-relaxed">{v.body}</span>
+                  </span>
+                </div>
               </Reveal>
-            ))}
-          </div>
+            );
+          })}
         </div>
       </section>
 
       {/* timeline */}
-      <section className="bg-chalk-50">
-        <div className="mx-auto grid max-w-7xl gap-14 px-5 py-20 sm:px-8 lg:grid-cols-[1fr_1.4fr] lg:gap-20">
-          <div className="lg:sticky lg:top-28 lg:self-start">
-            <SectionHead
-              kicker="1912 → today"
-              title={["A short history", "of a long memory"]}
-              lede="Seven moments that shaped the school. The full archive — every prize-giving programme since 1913 — lives in the Ellison Library, open Tuesday and Thursday lunchtimes."
-            />
-            <Reveal delay={250}>
-              <FramedImage src={IMG.hall} alt="The Great Hall during a ceremony" className="mt-8 aspect-[16/10] border-2 border-navy-900" />
-              <p className="mt-3 text-[0.7rem] font-bold tracking-[0.16em] text-navy-500 uppercase">The Great Hall, raised by alumni in one summer, 1931</p>
-            </Reveal>
-          </div>
-          <ol className="relative border-l-2 border-navy-900/15 pl-8 sm:pl-10">
-            {milestones.map((m, i) => (
-              <Reveal as="li" key={m.year} delay={i * 60} className="relative pb-10 last:pb-0">
-                <span className="absolute top-2 -left-[2.42rem] h-3.5 w-3.5 rotate-45 border-2 border-navy-900 bg-gold-400 sm:-left-[2.92rem]" />
-                <p className="font-display text-4xl font-bold text-navy-900 sm:text-5xl">{m.year}</p>
-                <h3 className="mt-2 font-display text-xl font-bold text-gold-600">{m.title}</h3>
-                <p className="mt-1.5 max-w-xl leading-relaxed text-ink/70">{m.text}</p>
+      <section className="relative bg-pine-950 text-chalk-50 noise overflow-hidden">
+        <div className="absolute inset-0 bg-grid-dark opacity-60" />
+        <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-28">
+          <SectionHead dark kicker="Since 1962" title={<>Sixty-odd years, eight turning points.</>} />
+          <div className="mt-14 relative">
+            <div className="absolute left-[19px] sm:left-1/2 sm:-translate-x-px top-0 bottom-0 w-0.5 bg-pine-800" />
+            {MILESTONES.map((m, i) => (
+              <Reveal key={m.year} delay={i * 60}>
+                <div className={`relative grid sm:grid-cols-2 gap-4 sm:gap-14 pb-12 ${i % 2 ? "sm:text-left" : "sm:text-right"}`}>
+                  <span className="absolute left-[19px] sm:left-1/2 -translate-x-1/2 top-1.5 w-4 h-4 rounded-full bg-gold-400 border-4 border-pine-950" />
+                  <div className={`pl-12 sm:pl-0 ${i % 2 ? "sm:col-start-2 sm:pl-10" : "sm:col-start-1 sm:pr-10"}`}>
+                    <p className="font-display font-extrabold text-3xl text-gold-300 leading-none">{m.year}</p>
+                    <p className="mt-2 font-bold text-lg">{m.title}</p>
+                    <p className="mt-1.5 text-sm text-pine-100/75 leading-relaxed">{m.body}</p>
+                  </div>
+                </div>
               </Reveal>
             ))}
-          </ol>
+          </div>
         </div>
       </section>
 
       {/* leadership */}
-      <section className="border-t-2 border-navy-900 bg-chalk-100">
-        <div className="mx-auto max-w-7xl px-5 py-20 sm:px-8">
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-28">
+        <div className="flex flex-wrap items-end justify-between gap-6">
           <SectionHead
             kicker="Leadership"
-            title={["The people who", "know every name"]}
-            lede="Six of the senior team below — between them, 92 years of Ashgrove corridors."
+            title={<>The people out front.</>}
+            body="Six leaders, one corridor — the Head's door is genuinely open, and the coffee machine is genuinely broken."
           />
-          <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {staff.map((s, i) => (
-              <Reveal key={s.name} delay={i * 70} className="group border-2 border-navy-900/15 bg-chalk-50 p-6 transition-all duration-300 hover:-translate-y-1.5 hover:border-navy-900 hover:shadow-[8px_8px_0_rgba(12,35,64,0.14)]">
-                <div className="flex items-center gap-4">
-                  <span className={`grid h-14 w-14 shrink-0 place-items-center font-display text-lg font-bold text-chalk-50 ${s.tint}`}>{s.initials}</span>
-                  <div>
-                    <p className="font-display text-xl leading-tight font-bold text-navy-900">{s.name}</p>
-                    <p className="kicker mt-1 !text-[0.58rem] text-gold-600">{s.role}</p>
-                  </div>
-                </div>
-                <p className="mt-4 border-t border-navy-900/10 pt-3 text-sm text-ink/60">{s.cred}</p>
-              </Reveal>
-            ))}
-          </div>
-          <Reveal delay={200}>
-            <div className="mt-12 flex flex-wrap items-center justify-between gap-6 border-2 border-navy-900 bg-navy-950 px-7 py-6 text-chalk-50">
-              <p className="font-display text-2xl font-bold sm:text-3xl">Want the full tour, walled garden included?</p>
-              <Link to="/contact" className="btn btn-gold">Arrange a visit <IcArrow className="h-4 w-4" /></Link>
-            </div>
+          <Reveal delay={120}>
+            <Link to="/contact" className="inline-flex items-center gap-2 font-bold text-pine-800 hover:text-gold-600 transition-colors group">
+              Contact any office <IcArrow className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </Link>
           </Reveal>
+        </div>
+        <div className="mt-12 grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {LEADERSHIP.map((p, i) => (
+            <Reveal key={p.name} delay={i * 70}>
+              <div className="group rounded-xl border border-pine-900/10 bg-white/70 p-6 hover:border-pine-700 hover:-translate-y-1 hover:shadow-card transition-all">
+                <div className="flex items-center gap-4">
+                  <span className="w-14 h-14 rounded-full bg-pine-900 text-gold-300 font-display font-extrabold grid place-items-center text-lg group-hover:bg-gold-400 group-hover:text-pine-950 transition-colors">
+                    {p.initials}
+                  </span>
+                  <span>
+                    <span className="block font-display font-bold text-lg text-pine-950 leading-tight">{p.name}</span>
+                    <span className="block text-[0.7rem] font-extrabold uppercase tracking-wider text-gold-600 mt-1">{p.role}</span>
+                  </span>
+                </div>
+                <p className="mt-4 text-sm text-ink-soft leading-relaxed">{p.bio}</p>
+              </div>
+            </Reveal>
+          ))}
         </div>
       </section>
 
-      {/* safeguarding note */}
-      <section className="bg-chalk-50">
-        <div className="mx-auto max-w-7xl px-5 py-16 sm:px-8">
-          <Reveal className="grid gap-6 border-l-4 border-gold-500 bg-chalk-100 p-7 sm:grid-cols-[1fr_auto] sm:items-center">
-            <div>
-              <h3 className="font-display text-2xl font-bold text-navy-900">Safeguarding comes before everything</h3>
-              <p className="mt-2 max-w-2xl leading-relaxed text-ink/70">
-                Our Designated Safeguarding Lead is Miss Charlotte Reed. Any concern, however small, can be raised with any adult in the school,
-                by phone, or in writing to <span className="font-semibold text-navy-800">safeguarding@ashgrove-academy.sch.uk</span>. Our policy is reviewed termly and published to all families.
-              </p>
-            </div>
-            <ArrowLink to="/contact">Contact the office</ArrowLink>
-          </Reveal>
+      {/* campus facts */}
+      <section className="relative bg-pine-900 text-chalk-50 overflow-hidden">
+        <div className="absolute inset-0 bg-dots opacity-30" />
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 grid grid-cols-2 lg:grid-cols-4 gap-10">
+          {CAMPUS_FACTS.map((f, i) => (
+            <Reveal key={f.label} delay={i * 80}>
+              <StatBlock value={f.value} suffix={f.suffix} label={f.label} dark />
+            </Reveal>
+          ))}
         </div>
       </section>
     </>

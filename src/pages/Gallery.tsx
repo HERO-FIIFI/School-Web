@@ -1,89 +1,104 @@
 import { useMemo, useState } from "react";
+import { GALLERY, GALLERY_TAGS } from "../lib/data";
+import { Reveal } from "../components/ui";
 import { Lightbox } from "../components/interactive";
-import { PageHero, Reveal } from "../components/ui";
-import { IcArrowUp, IcLeaf } from "../components/icons";
-import { galleryImages, type GalleryCat } from "../lib/data";
-
-const cats: ("All" | GalleryCat)[] = ["All", "Campus", "Learning", "Arts", "Sport", "Community"];
+import { IcArrow } from "../components/icons";
 
 export default function Gallery() {
-  const [cat, setCat] = useState<(typeof cats)[number]>("All");
+  const [tag, setTag] = useState("All");
   const [lightbox, setLightbox] = useState<number | null>(null);
 
-  const filtered = useMemo(() => galleryImages.filter((g) => cat === "All" || g.cat === cat), [cat]);
+  const items = useMemo(() => (tag === "All" ? GALLERY : GALLERY.filter((g) => g.tag === tag)), [tag]);
 
   return (
     <>
-      <PageHero
-        kicker="Gallery · the year in pictures"
-        title={[<>Proof it really</>, <em key="h" className="font-display italic text-gold-300">happened</em>]}
-        lede="Muddy boots, standing ovations, climate chambers and one very photogenic quad. Shot by the Year 12 photography society — errors, grain and all."
-      />
-
-      <section className="bg-chalk-50">
-        <div className="mx-auto max-w-7xl px-5 py-16 sm:px-8">
-          <Reveal className="flex flex-wrap items-center justify-between gap-5">
-            <div className="flex flex-wrap gap-2">
-              {cats.map((c) => (
-                <button
-                  key={c}
-                  onClick={() => {
-                    setCat(c);
-                    setLightbox(null);
-                  }}
-                  className={`cursor-pointer border px-3.5 py-2 text-[0.7rem] font-bold tracking-[0.12em] uppercase transition-all duration-200 ${
-                    cat === c
-                      ? "border-navy-900 bg-navy-900 text-gold-300 shadow-[4px_4px_0_rgba(217,161,59,0.6)]"
-                      : "border-navy-900/25 bg-chalk-50 text-navy-700 hover:border-navy-900 hover:bg-chalk-100"
-                  }`}
-                >
-                  {c}
-                </button>
-              ))}
-            </div>
-            <p className="kicker text-navy-500">{filtered.length} {filtered.length === 1 ? "frame" : "frames"} · click any to enlarge</p>
+      {/* header */}
+      <section className="relative bg-pine-950 text-chalk-50 overflow-hidden noise">
+        <div className="absolute inset-0 bg-grid-dark" />
+        <div className="absolute left-[-140px] top-[-140px] w-[420px] h-[420px] rounded-full border-[30px] border-pine-900/80 pointer-events-none" />
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-20 flex flex-wrap items-end justify-between gap-8">
+          <div>
+            <Reveal><p className="kicker text-gold-300">Gallery</p></Reveal>
+            <Reveal delay={90}>
+              <h1 className="mt-4 font-display font-extrabold tracking-tight leading-[1.0] text-4xl sm:text-5xl lg:text-[3.2rem]">
+                Proof that school
+                <br />
+                is a <span className="text-gold-300">place.</span>
+              </h1>
+            </Reveal>
+          </div>
+          <Reveal delay={160}>
+            <p className="max-w-sm text-pine-100/80 leading-relaxed">
+              Shot on campus by students of the Photography Club — hover a frame, click to enlarge. New sets
+              land every fortnight.
+            </p>
           </Reveal>
+        </div>
+      </section>
 
-          <div className="mt-10 columns-1 gap-6 sm:columns-2 lg:columns-3 [&>*]:mb-6">
-            {filtered.map((g, i) => (
-              <Reveal key={g.src} delay={(i % 3) * 70} className="break-inside-avoid">
-                <button
-                  onClick={() => setLightbox(i)}
-                  className="group relative block w-full cursor-zoom-in overflow-hidden border-2 border-navy-900 bg-navy-900 text-left shadow-[6px_6px_0_rgba(12,35,64,0.1)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[10px_10px_0_rgba(12,35,64,0.18)]"
-                >
-                  <div className={`overflow-hidden ${g.aspect}`}>
-                    <img src={g.src} alt={g.alt} loading="lazy" className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.06]" />
-                  </div>
-                  <span className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-3 bg-navy-950/90 px-4 py-3 backdrop-blur-sm">
-                    <span className="font-display text-sm font-semibold text-chalk-50">{g.alt}</span>
-                    <span className="kicker shrink-0 !text-[0.55rem] text-gold-300">{g.cat}</span>
-                  </span>
-                  <span className="absolute top-3 right-3 grid h-8 w-8 place-items-center bg-gold-400 text-navy-950 opacity-0 transition-all duration-300 group-hover:opacity-100">
-                    <IcArrowUp className="h-4 w-4" />
-                  </span>
-                </button>
-              </Reveal>
+      {/* filters + masonry */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 lg:py-18">
+        <Reveal>
+          <div className="flex flex-wrap gap-2">
+            {GALLERY_TAGS.map((t) => (
+              <button
+                key={t}
+                onClick={() => setTag(t)}
+                className={`rounded-full px-4 py-2 text-sm font-bold transition-all active:scale-95 ${
+                  tag === t ? "bg-pine-900 text-gold-300" : "border border-pine-900/15 bg-white/60 text-pine-900 hover:border-pine-700"
+                }`}
+              >
+                {t}
+                <span className={`ml-1.5 text-xs ${tag === t ? "text-gold-300/70" : "text-pine-900/40"}`}>
+                  {t === "All" ? GALLERY.length : GALLERY.filter((g) => g.tag === t).length}
+                </span>
+              </button>
             ))}
           </div>
+        </Reveal>
+
+        <div className="mt-10 columns-1 sm:columns-2 lg:columns-3 gap-6 [column-fill:_balance]">
+          {items.map((g, i) => (
+            <Reveal key={g.src + g.caption} delay={(i % 3) * 80} className="mb-6 break-inside-avoid">
+              <button
+                onClick={() => setLightbox(i)}
+                className="postcard group block w-full text-left bg-white p-2.5 pb-3 rounded-md shadow-card"
+                style={{ transform: `rotate(${i % 2 ? 1.2 : -1.2}deg)` }}
+              >
+                <span className="img-zoom block rounded-sm overflow-hidden relative">
+                  <img
+                    src={g.src}
+                    alt={g.caption}
+                    loading="lazy"
+                    className={`w-full object-cover ${g.tall ? "h-80 sm:h-[420px]" : "h-60 sm:h-72"}`}
+                  />
+                  <span className="absolute inset-0 bg-pine-1000/0 group-hover:bg-pine-1000/25 transition-colors grid place-items-center">
+                    <span className="opacity-0 group-hover:opacity-100 transition-opacity rounded-full bg-chalk-50 text-pine-950 text-xs font-extrabold px-4 py-2 flex items-center gap-1.5">
+                      View <IcArrow className="w-3 h-3 -rotate-45" />
+                    </span>
+                  </span>
+                </span>
+                <span className="mt-3 flex items-center justify-between px-1">
+                  <span className="font-display font-semibold text-sm text-pine-900">{g.caption}</span>
+                  <span className="rounded-full bg-gold-300/50 text-gold-600 text-[0.62rem] font-extrabold uppercase tracking-wider px-2 py-0.5">
+                    {g.tag}
+                  </span>
+                </span>
+              </button>
+            </Reveal>
+          ))}
         </div>
+
+        <Reveal delay={120}>
+          <p className="mt-8 text-center text-sm text-ink-soft">
+            Photographs are published with family permission. Spot your child and want a print?{" "}
+            <span className="font-semibold text-pine-900">Write to the Arts Office — prints are free.</span>
+          </p>
+        </Reveal>
       </section>
 
-      {/* photographer's note */}
-      <section className="blueprint bg-navy-950 text-chalk-50">
-        <div className="mx-auto grid max-w-7xl gap-10 px-5 py-16 sm:px-8 lg:grid-cols-[1fr_2fr] lg:items-center">
-          <IcLeaf className="hidden h-28 w-28 text-gold-400/70 lg:block" />
-          <div>
-            <p className="kicker text-gold-300">From the darkroom</p>
-            <p className="font-display mt-4 text-2xl leading-snug font-semibold sm:text-3xl">
-              “We shoot on whatever's in our pockets, then argue about film grain in the common room. The quad at 07:40 is the best set in Kent — <em className="italic text-gold-300">don't tell the drama department.</em>”
-            </p>
-            <p className="mt-4 text-sm tracking-wide text-navy-300 uppercase">— Year 12 Photography Society, est. 2019</p>
-          </div>
-        </div>
-      </section>
-
-      {lightbox !== null && filtered[lightbox] && (
-        <Lightbox items={filtered} index={lightbox} onClose={() => setLightbox(null)} setIndex={setLightbox} />
+      {lightbox !== null && (
+        <Lightbox items={items} index={lightbox} onClose={() => setLightbox(null)} onIndex={setLightbox} />
       )}
     </>
   );

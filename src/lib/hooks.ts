@@ -1,21 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 
-export function useReducedMotion(): boolean {
-  const [reduced, setReduced] = useState(
-    () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches
-  );
-  useEffect(() => {
-    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const onChange = () => setReduced(mq.matches);
-    mq.addEventListener("change", onChange);
-    return () => mq.removeEventListener("change", onChange);
-  }, []);
-  return reduced;
-}
-
-export function useInView<T extends HTMLElement>(threshold = 0.18, once = true) {
+/* Observe an element once; returns [ref, inView] */
+export function useInView<T extends HTMLElement>(threshold = 0.15) {
   const ref = useRef<T | null>(null);
   const [inView, setInView] = useState(false);
+
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
@@ -23,30 +12,32 @@ export function useInView<T extends HTMLElement>(threshold = 0.18, once = true) 
       setInView(true);
       return;
     }
-    const io = new IntersectionObserver(
+    const obs = new IntersectionObserver(
       (entries) => {
         entries.forEach((e) => {
           if (e.isIntersecting) {
             setInView(true);
-            if (once) io.unobserve(e.target);
-          } else if (!once) {
-            setInView(false);
+            obs.disconnect();
           }
         });
       },
       { threshold, rootMargin: "0px 0px -8% 0px" }
     );
-    io.observe(el);
-    return () => io.disconnect();
-  }, [threshold, once]);
-  return { ref, inView };
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [threshold]);
+
+  return [ref, inView] as const;
 }
 
-export function useCountUp(target: number, start: boolean, duration = 1500): number {
+/* Animated counter that starts when `start` becomes true */
+export function useCountUp(target: number, start: boolean, duration = 1600) {
   const [value, setValue] = useState(0);
-  const reduced = useReducedMotion();
   useEffect(() => {
     if (!start) return;
+    const reduced =
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (reduced) {
       setValue(target);
       return;
@@ -61,65 +52,90 @@ export function useCountUp(target: number, start: boolean, duration = 1500): num
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [target, start, duration, reduced]);
+  }, [start, target, duration]);
   return value;
 }
 
-const GLYPHS = "ASHGROVEACDMY·1912§#%&";
-
-export function useScramble(text: string, play = true, speed = 26): string {
-  const [out, setOut] = useState(text);
-  const reduced = useReducedMotion();
+export function useScrolled(threshold = 12) {
+  const [scrolled, setScrolled] = useState(false);
   useEffect(() => {
-    if (!play || reduced) {
-      setOut(text);
-      return;
-    }
-    let frame = 0;
-    const total = text.length + 6;
-    const id = window.setInterval(() => {
-      frame += 1;
-      const settled = Math.max(0, frame - 4);
-      const next = text
-        .split("")
-        .map((ch, i) => {
-          if (ch === " " || ch === "\n") return ch;
-          if (i < settled) return ch;
-          return GLYPHS[Math.floor(Math.random() * GLYPHS.length)];
-        })
-        .join("");
-      setOut(next);
-      if (settled >= total) window.clearInterval(id);
-    }, speed);
-    return () => window.clearInterval(id);
-  }, [text, play, speed, reduced]);
-  return out;
+    const onScroll = () => setScrolled(window.scrollY > threshold);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [threshold]);
+  return scrolled;
 }
 
-export function useNow(intervalMs = 1000): Date {
-  const [now, setNow] = useState(() => new Date());
-  useEffect(() => {
-    const id = window.setInterval(() => setNow(new Date()), intervalMs);
-    return () => window.clearInterval(id);
-  }, [intervalMs]);
-  return now;
+/* ---------------- date helpers ---------------- */
+
+const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+const MONTHS_S = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const DAYS_S = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const DAYS_FULL = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
+export const fmtShort = (dt: Date) => `${DAYS_S[dt.getDay()]} ${dt.getDate()} ${MONTHS_S[dt.getMonth()]}`;
+export const fmtWeekday = (dt: Date) => DAYS_FULL[dt.getDay()];
+export const fmtLong = (dt: Date) => `${dt.getDate()} ${MONTHS[dt.getMonth()]} ${dt.getFullYear()}`;
+export const fmtMonthYear = (dt: Date) => `${MONTHS[dt.getMonth()]} ${dt.getFullYear()}`;
+
+export const daysUntil = (dt: Date) =>
+  Math.ceil((dt.getTime() - new Date().setHours(0, 0, 0, 0)) / 86_400_000);
+
+export const isSameDay = (a: Date, b: Date) =>
+  a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+
+/* Month grid: weeks of Dates, padded to full weeks (Sunday-first) */
+export function monthGrid(year: number, month: number): Date[][] {
+  const first = new Date(year, month, 1);
+  const start = new Date(year, month, 1 - first.getDay());
+  const weeks: Date[][] = [];
+  const cur = new Date(start);
+  for (let w = 0; w < 6; w++) {
+    const week: Date[] = [];
+    for (let i = 0; i < 7; i++) {
+      week.push(new Date(cur));
+      cur.setDate(cur.getDate() + 1);
+    }
+    weeks.push(week);
+    if (cur.getMonth() !== month && cur.getDay() === 0 && w >= 3) break;
+  }
+  return weeks;
 }
 
-export function useLocalStorage<T>(key: string, initial: T) {
-  const [value, setValue] = useState<T>(() => {
-    try {
-      const raw = window.localStorage.getItem(key);
-      return raw ? (JSON.parse(raw) as T) : initial;
-    } catch {
-      return initial;
-    }
-  });
-  useEffect(() => {
-    try {
-      window.localStorage.setItem(key, JSON.stringify(value));
-    } catch {
-      /* storage unavailable */
-    }
-  }, [key, value]);
-  return [value, setValue] as const;
+/* Relative "n days ago / today" label for news */
+export function agoLabel(daysAgo: number) {
+  if (daysAgo <= 0) return "Today";
+  if (daysAgo === 1) return "Yesterday";
+  if (daysAgo < 7) return `${daysAgo} days ago`;
+  if (daysAgo < 30) return `${Math.round(daysAgo / 7)} week${daysAgo >= 14 ? "s" : ""} ago`;
+  return `${Math.round(daysAgo / 30)} month${daysAgo >= 60 ? "s" : ""} ago`;
+}
+
+/* Generate a .ics file for an event and trigger download */
+export function downloadICS(title: string, date: Date, time: string, location: string, desc: string) {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const stamp = `${date.getFullYear()}${pad(date.getMonth() + 1)}${pad(date.getDate())}`;
+  const [hh = "9", mm = "00"] = time.split(":");
+  const ics = [
+    "BEGIN:VCALENDAR",
+    "VERSION:2.0",
+    "PRODID:-//Aldercrest Academy//Events//EN",
+    "BEGIN:VEVENT",
+    `UID:${stamp}-${title.length}@aldercrest.edu`,
+    `DTSTAMP:${stamp}T${pad(Number(hh))}${pad(Number(mm))}00`,
+    `DTSTART:${stamp}T${pad(Number(hh))}${pad(Number(mm))}00`,
+    `SUMMARY:${title.replace(/,/g, "\\,")}`,
+    `LOCATION:${location.replace(/,/g, "\\,")}`,
+    `DESCRIPTION:${desc.replace(/,/g, "\\,")}`,
+    "END:VEVENT",
+    "END:VCALENDAR",
+  ].join("\r\n");
+  const blob = new Blob([ics], { type: "text/calendar" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `${title.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 40)}.ics`;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 800);
 }

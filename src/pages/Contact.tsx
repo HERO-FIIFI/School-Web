@@ -1,144 +1,230 @@
-import { EnquiryForm } from "../components/interactive";
-import { PageHero, Reveal, SectionHead } from "../components/ui";
-import { IcBus, IcClock, IcMail, IcPhone, IcPin } from "../components/icons";
-import { SCHOOL } from "../lib/data";
+import React, { useState } from "react";
+import { DEPT_DIRECTORY } from "../lib/data";
+import { Field, inputCls, Reveal, SectionHead } from "../components/ui";
+import { IcArrow, IcCheck, IcClock, IcMail, IcPhone, IcPin, IcSend } from "../components/icons";
 
-/* hand-drawn campus map */
-function GroveMap() {
+/* stylised campus map */
+function CampusMap() {
   return (
-    <svg viewBox="0 0 460 280" className="w-full border-2 border-navy-900 bg-navy-950" role="img" aria-label="Stylised map showing Ashgrove Academy off the A26, near Hartfield">
-      <defs>
-        <pattern id="mapgrid" width="26" height="26" patternUnits="userSpaceOnUse">
-          <path d="M26 0H0v26" fill="none" stroke="rgba(217,227,238,0.07)" />
-        </pattern>
-      </defs>
-      <rect width="460" height="280" fill="url(#mapgrid)" />
-      {/* roads */}
-      <path d="M-10 210 C 90 190, 160 230, 250 205 S 420 150, 470 160" fill="none" stroke="var(--color-navy-600)" strokeWidth="14" strokeLinecap="round" />
-      <path d="M120 -10 C 130 70, 110 130, 150 205" fill="none" stroke="var(--color-navy-700)" strokeWidth="9" strokeLinecap="round" />
-      <path d="M150 205 C 200 190, 235 150, 262 118" fill="none" stroke="var(--color-gold-500)" strokeWidth="4" strokeDasharray="7 6" strokeLinecap="round" />
-      {/* copse */}
-      {[[348, 70], [378, 92], [352, 118], [404, 64], [408, 110], [372, 140]].map(([x, y], i) => (
-        <circle key={i} cx={x} cy={y} r={i % 2 ? 13 : 17} fill="var(--color-moss-700)" opacity="0.85" />
+    <svg viewBox="0 0 560 380" className="w-full h-auto rounded-2xl border border-pine-900/10 shadow-card bg-pine-50" role="img" aria-label="Stylised map showing Aldercrest Academy on Alder Hill Road">
+      <rect width="560" height="380" fill="#eef4ef" />
+      {/* river */}
+      <path d="M-10 300 C 120 260, 200 330, 330 300 S 520 250, 580 280" fill="none" stroke="#b5cfbc" strokeWidth="26" strokeLinecap="round" opacity="0.8" />
+      {/* park */}
+      <ellipse cx="450" cy="90" rx="95" ry="60" fill="#d9e6dc" />
+      {[...Array(7)].map((_, i) => (
+        <circle key={i} cx={400 + (i % 4) * 30} cy={70 + Math.floor(i / 4) * 28} r="9" fill="#8bb398" />
       ))}
-      {/* buildings */}
-      <g stroke="var(--color-gold-300)" strokeWidth="1.6" fill="var(--color-navy-800)">
-        <rect x="240" y="70" width="52" height="34" />
-        <rect x="300" y="96" width="34" height="26" />
-        <rect x="250" y="112" width="40" height="26" />
-        <path d="M240 70 266 52 292 70" fill="var(--color-navy-800)" />
-      </g>
-      {/* pitches */}
-      <rect x="150" y="52" width="64" height="42" fill="none" stroke="var(--color-moss-600)" strokeWidth="2" />
-      <line x1="182" y1="52" x2="182" y2="94" stroke="var(--color-moss-600)" strokeWidth="1.5" />
+      {/* roads */}
+      <path d="M0 210 H560" stroke="#f7f6f0" strokeWidth="20" />
+      <path d="M0 210 H560" stroke="#d5cfba" strokeWidth="2" strokeDasharray="10 12" />
+      <path d="M170 0 V380" stroke="#f7f6f0" strokeWidth="16" />
+      <path d="M170 0 V380" stroke="#d5cfba" strokeWidth="2" strokeDasharray="10 12" />
+      <path d="M170 210 L 330 90" stroke="#f7f6f0" strokeWidth="14" />
+      {/* blocks */}
+      <rect x="40" y="60" width="80" height="50" rx="6" fill="#d9e6dc" stroke="#8bb398" />
+      <rect x="230" y="240" width="90" height="55" rx="6" fill="#e6e2d3" stroke="#b3ab8e" />
+      <rect x="360" y="230" width="70" height="45" rx="6" fill="#e6e2d3" stroke="#b3ab8e" />
+      {/* school campus */}
+      <rect x="210" y="55" width="130" height="100" rx="10" fill="#0d3327" />
+      <rect x="228" y="72" width="40" height="30" rx="3" fill="#1e4732" />
+      <rect x="280" y="72" width="42" height="44" rx="3" fill="#1e4732" />
+      <rect x="228" y="112" width="60" height="26" rx="3" fill="#1e4732" />
+      <circle cx="316" cy="130" r="10" fill="#e8a33d" />
       {/* pin */}
-      <g>
-        <circle cx="266" cy="87" r="22" fill="var(--color-gold-400)" opacity="0.15">
-          <animate attributeName="r" values="16;26;16" dur="2.6s" repeatCount="indefinite" />
-        </circle>
-        <path d="M266 66c-9 0-15 6.5-15 14.5 0 10 15 24 15 24s15-14 15-24C281 72.5 275 66 266 66Z" fill="var(--color-gold-400)" stroke="var(--color-navy-950)" strokeWidth="1.6" />
-        <circle cx="266" cy="81" r="5" fill="var(--color-navy-950)" />
+      <g transform="translate(275 30)">
+        <path d="M0 42 C -16 24 -20 12 -12 2 A 17 17 0 0 1 12 2 C 20 12 16 24 0 42 Z" fill="#e8a33d" stroke="#0d3327" strokeWidth="2.5" />
+        <circle cx="0" cy="12" r="5.5" fill="#0d3327" />
       </g>
       {/* labels */}
-      <g fontFamily="Archivo, sans-serif" fontWeight="700" fontSize="10" letterSpacing="1.5" fill="var(--color-navy-200)">
-        <text x="352" y="176" fill="var(--color-navy-400)">THE COPSE</text>
-        <text x="150" y="44">TOP PITCH</text>
-        <text x="36" y="236" fill="var(--color-gold-300)">A26 → TUNBRIDGE WELLS</text>
-        <text x="128" y="252" fill="var(--color-navy-300)">HARTFIELD LANE</text>
-        <text x="292" y="60" fill="var(--color-chalk-50)" fontSize="11">ASHGROVE ACADEMY</text>
-        <text x="292" y="72" fill="var(--color-navy-300)" fontSize="8">MAIN GATE · VISITOR PARKING</text>
-      </g>
+      <text x="275" y="195" textAnchor="middle" fontFamily="Bricolage Grotesque, sans-serif" fontWeight="800" fontSize="15" fill="#f7f6f0">Aldercrest Academy</text>
+      <text x="20" y="203" fontFamily="Public Sans, sans-serif" fontWeight="600" fontSize="11" fill="#41544a">Alder Hill Road</text>
+      <text x="178" y="368" fontFamily="Public Sans, sans-serif" fontWeight="600" fontSize="11" fill="#41544a">Mill Lane</text>
+      <text x="418" y="128" fontFamily="Public Sans, sans-serif" fontWeight="600" fontSize="11" fill="#3d7355">Heron Park</text>
+      <text x="60" y="330" fontFamily="Public Sans, sans-serif" fontWeight="600" fontSize="11" fill="#5e9273">River Alder</text>
       {/* compass */}
-      <g transform="translate(424,32)" stroke="var(--color-gold-300)" strokeWidth="1.4">
-        <circle r="14" fill="none" />
-        <path d="M0 -9 4 5 0 2 -4 5Z" fill="var(--color-gold-300)" stroke="none" />
-        <text x="-3" y="-17" fontFamily="Archivo, sans-serif" fontSize="9" fontWeight="700" fill="var(--color-gold-300)" stroke="none">N</text>
+      <g transform="translate(515 40)">
+        <circle r="18" fill="#f7f6f0" stroke="#0d3327" strokeWidth="2" />
+        <path d="M0 -11 L4 4 L0 1 L-4 4 Z" fill="#0d3327" />
+        <text y="13" textAnchor="middle" fontFamily="Public Sans, sans-serif" fontWeight="800" fontSize="8" fill="#0d3327">N</text>
       </g>
     </svg>
   );
 }
 
+type Form = { name: string; email: string; role: string; topic: string; message: string };
+
 export default function Contact() {
-  const cards = [
-    { icon: IcPin, title: "Find us", lines: [SCHOOL.address, "Main gate & visitor parking on Hartfield Lane."] },
-    { icon: IcPhone, title: "Ring the office", lines: [SCHOOL.phone, "Mon–Fri, 08:00–16:30 · out-of-hours: duty mobile"] },
-    { icon: IcMail, title: "Write to us", lines: [SCHOOL.email, SCHOOL.admissionsEmail] },
-    { icon: IcClock, title: "School hours", lines: ["Gates 08:00 · registration 08:30", "Clubs & prep to 16:30 · Sixth Form to 17:30"] },
-  ];
+  const [form, setForm] = useState<Form>({ name: "", email: "", role: "Parent", topic: "General question", message: "" });
+  const [errors, setErrors] = useState<Partial<Form>>({});
+  const [sending, setSending] = useState(false);
+  const [done, setDone] = useState(false);
+
+  const set = (k: keyof Form) => (ev: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    setForm((f) => ({ ...f, [k]: ev.target.value }));
+    setErrors((e) => ({ ...e, [k]: undefined }));
+  };
+
+  const submit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const errs: Partial<Form> = {};
+    if (form.name.trim().length < 2) errs.name = "Please add your name.";
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) errs.email = "That email doesn't look right.";
+    if (form.message.trim().length < 10) errs.message = "Give us a little more to go on.";
+    setErrors(errs);
+    if (Object.keys(errs).length) return;
+    setSending(true);
+    setTimeout(() => {
+      setSending(false);
+      setDone(true);
+    }, 800);
+  };
 
   return (
     <>
-      <PageHero
-        kicker="Contact us"
-        title={[<>The kettle's on —</>, <em key="c" className="font-display italic text-gold-300">come and talk</em>]}
-        lede="Questions about admissions, fees, buses or the lunch menu — all welcome. The registrar's office answers within two working days, and tours run most Tuesday and Thursday mornings."
-      />
+      {/* header */}
+      <section className="relative bg-pine-950 text-chalk-50 overflow-hidden noise">
+        <div className="absolute inset-0 bg-grid-dark" />
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-20">
+          <Reveal><p className="kicker text-gold-300">Contact us</p></Reveal>
+          <Reveal delay={90}>
+            <h1 className="mt-4 font-display font-extrabold tracking-tight leading-[1.02] text-4xl sm:text-5xl lg:text-[3.2rem] max-w-3xl">
+              A real person answers. <span className="text-gold-300">Usually Margaret.</span>
+            </h1>
+          </Reveal>
+          <Reveal delay={170}>
+            <p className="mt-5 max-w-2xl text-[1.02rem] leading-relaxed text-pine-100/85">
+              The front desk opens at 07:30 on school days. For anything urgent outside those hours, the duty
+              line goes straight to the Deputy Head's phone.
+            </p>
+          </Reveal>
+        </div>
+      </section>
 
-      <section className="bg-chalk-50">
-        <div className="mx-auto grid max-w-7xl gap-14 px-5 py-20 sm:px-8 lg:grid-cols-[1fr_1.1fr] lg:gap-16">
-          <div>
-            <SectionHead kicker="Reach us" title={["Four ways", "in"]} />
-            <div className="mt-8 grid gap-4 sm:grid-cols-2">
-              {cards.map((c, i) => (
-                <Reveal key={c.title} delay={i * 70} className="group border-2 border-navy-900/15 bg-chalk-50 p-5 transition-all duration-300 hover:-translate-y-1 hover:border-navy-900 hover:shadow-[6px_6px_0_rgba(12,35,64,0.12)]">
-                  <span className="grid h-11 w-11 place-items-center border-2 border-navy-900 text-navy-800 transition-colors group-hover:bg-gold-400">
-                    <c.icon className="h-5 w-5" />
-                  </span>
-                  <h3 className="font-display mt-4 text-lg font-bold text-navy-900">{c.title}</h3>
+      {/* info + form */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-20 grid lg:grid-cols-[1fr_1.25fr] gap-14">
+        <div className="space-y-6">
+          {[
+            { icon: <IcPin className="w-5 h-5" />, title: "Visit", lines: ["42 Alder Hill Road, Aldercrest", "Main gate on Alder Hill Rd; visitor parking inside"] },
+            { icon: <IcPhone className="w-5 h-5" />, title: "Call", lines: ["+1 (555) 014-2026 — front desk", "Duty line (emergencies): +1 (555) 014-2099"] },
+            { icon: <IcMail className="w-5 h-5" />, title: "Write", lines: ["office@aldercrest.edu", "Replies within one school day"] },
+            { icon: <IcClock className="w-5 h-5" />, title: "Office hours", lines: ["Mon–Fri 07:30–16:30 on school days", "Term-time only; holiday cover on the duty line"] },
+          ].map((c, i) => (
+            <Reveal key={c.title} delay={i * 70}>
+              <div className="group flex gap-5 rounded-xl border border-pine-900/10 bg-white/70 p-6 hover:border-pine-700 hover:-translate-y-0.5 hover:shadow-card transition-all">
+                <span className="shrink-0 w-12 h-12 rounded-xl bg-pine-900 text-gold-300 grid place-items-center group-hover:bg-gold-400 group-hover:text-pine-950 transition-colors">
+                  {c.icon}
+                </span>
+                <span>
+                  <span className="block font-display font-bold text-lg text-pine-950">{c.title}</span>
                   {c.lines.map((l) => (
-                    <p key={l} className="mt-1 break-words text-sm leading-relaxed text-ink/65">{l}</p>
+                    <span key={l} className="block text-sm text-ink-soft mt-1">{l}</span>
                   ))}
-                </Reveal>
-              ))}
-            </div>
+                </span>
+              </div>
+            </Reveal>
+          ))}
 
-            <Reveal delay={200} className="mt-10">
-              <h3 className="kicker text-navy-600">Getting here</h3>
-              <div className="mt-4 space-y-0 border-t-2 border-navy-900">
-                {[
-                  { icon: IcBus, k: "By bus", v: "Seven supervised school routes across Kent — see the downloads. Public 231 stops at the crossroads, 400m walk." },
-                  { icon: IcPin, k: "By train", v: "Hartfield Halt (heritage line, summer weekends) or Tunbridge Wells mainline, 20 minutes by taxi." },
-                  { icon: IcClock, k: "By car", v: "A26 to Hartfield Lane; visitor parking inside the main gate — arrive ten minutes early for the one-way." },
-                ].map((r, i) => (
-                  <div key={r.k} className="flex items-start gap-4 border-b-2 border-navy-900/15 py-4">
-                    <span className="mt-0.5 grid h-9 w-9 shrink-0 place-items-center bg-navy-900 text-gold-300"><r.icon className="h-4.5 w-4.5" /></span>
+          <Reveal delay={300}>
+            <a
+              href="https://maps.google.com/?q=Aldercrest"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-2 font-bold text-pine-800 hover:text-gold-600 transition-colors group"
+            >
+              Get directions in your maps app <IcArrow className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </a>
+          </Reveal>
+        </div>
+
+        <Reveal delay={120}>
+          {done ? (
+            <div className="h-full min-h-[420px] grid place-items-center rounded-2xl border border-gold-400/50 bg-gold-300/20 p-10 text-center">
+              <div>
+                <span className="inline-grid place-items-center w-16 h-16 rounded-full bg-pine-900 text-gold-300 mx-auto"><IcCheck className="w-7 h-7" /></span>
+                <h3 className="mt-6 font-display font-bold text-2xl text-pine-950">Message sent — thank you.</h3>
+                <p className="mt-3 text-ink-soft max-w-sm mx-auto">
+                  It's with the front desk now. Expect a reply at <strong>{form.email}</strong> within one school day.
+                </p>
+                <button
+                  onClick={() => { setDone(false); setForm({ name: "", email: "", role: "Parent", topic: "General question", message: "" }); }}
+                  className="mt-7 rounded-full bg-pine-900 text-chalk-50 px-6 py-2.5 text-sm font-bold hover:bg-pine-800 transition-colors"
+                >
+                  Send another message
+                </button>
+              </div>
+            </div>
+          ) : (
+            <form onSubmit={submit} noValidate className="rounded-2xl border border-pine-900/10 bg-white/80 p-7 sm:p-9 space-y-5 shadow-card">
+              <p className="font-display font-bold text-2xl text-pine-950">Send us a message</p>
+              <div className="grid sm:grid-cols-2 gap-5">
+                <Field label="Your name" error={errors.name}>
+                  <input className={inputCls} value={form.name} onChange={set("name")} placeholder="e.g. Sam Rivera" />
+                </Field>
+                <Field label="Email" error={errors.email}>
+                  <input type="email" className={inputCls} value={form.email} onChange={set("email")} placeholder="you@example.com" />
+                </Field>
+              </div>
+              <div className="grid sm:grid-cols-2 gap-5">
+                <Field label="You are a…">
+                  <select className={inputCls} value={form.role} onChange={set("role")}>
+                    {["Parent", "Prospective parent", "Student", "Alumnus", "Neighbour", "Other"].map((r) => <option key={r}>{r}</option>)}
+                  </select>
+                </Field>
+                <Field label="Topic">
+                  <select className={inputCls} value={form.topic} onChange={set("topic")}>
+                    {["General question", "Admissions & tours", "Transport & buses", "Billing & fees", "Safeguarding", "Press & media", "Lost property (again)"].map((t) => <option key={t}>{t}</option>)}
+                  </select>
+                </Field>
+              </div>
+              <Field label="Message" error={errors.message}>
+                <textarea rows={5} className={inputCls} value={form.message} onChange={set("message")} placeholder="How can we help?" />
+              </Field>
+              <button
+                type="submit"
+                disabled={sending}
+                className="w-full inline-flex items-center justify-center gap-2.5 rounded-full bg-pine-900 text-chalk-50 font-bold px-7 py-4 hover:bg-pine-800 transition-all active:scale-[0.98] disabled:opacity-60"
+              >
+                {sending ? "Sending…" : <>Send message <IcSend className="w-4 h-4" /></>}
+              </button>
+            </form>
+          )}
+        </Reveal>
+      </section>
+
+      {/* map + directory */}
+      <section className="relative bg-chalk-100 border-t border-pine-900/10">
+        <div className="absolute inset-0 bg-grid-light opacity-50" />
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-24 grid lg:grid-cols-[1.2fr_1fr] gap-12 items-start">
+          <div>
+            <SectionHead kicker="Finding us" title={<>Up the hill, past the herons.</>} />
+            <Reveal delay={120}>
+              <div className="mt-8">
+                <CampusMap />
+              </div>
+            </Reveal>
+          </div>
+          <div>
+            <SectionHead kicker="Directory" title={<>Who to ask for.</>} />
+            <Reveal delay={120}>
+              <div className="mt-8 rounded-2xl border border-pine-900/10 bg-chalk-50 overflow-hidden shadow-card">
+                {DEPT_DIRECTORY.map((dep, i) => (
+                  <div key={dep.dept} className={`px-6 py-4 flex items-center justify-between gap-4 ${i % 2 ? "bg-pine-50/50" : ""}`}>
                     <div>
-                      <p className="font-display font-bold text-navy-900">{r.k}</p>
-                      <p className="mt-0.5 text-sm leading-relaxed text-ink/65">{r.v}</p>
+                      <p className="font-bold text-pine-950">{dep.dept}</p>
+                      <p className="text-xs text-ink-soft mt-0.5">{dep.contact} · ext. {dep.ext}</p>
                     </div>
-                    <span className="ml-auto hidden font-display text-2xl font-bold text-navy-200 sm:block">0{i + 1}</span>
+                    <a
+                      href={`mailto:${dep.email}`}
+                      className="shrink-0 text-sm font-semibold text-pine-800 hover:text-gold-600 transition-colors underline decoration-gold-400/60 underline-offset-4"
+                    >
+                      {dep.email.replace("@aldercrest.edu", "@…")}
+                    </a>
                   </div>
                 ))}
               </div>
             </Reveal>
           </div>
-
-          <div>
-            <SectionHead kicker="Say hello" title={["Send an", "enquiry"]} />
-            <div className="mt-8">
-              <EnquiryForm context="General" />
-            </div>
-            <Reveal delay={200} className="mt-10">
-              <h3 className="kicker text-navy-600">The map, roughly</h3>
-              <div className="mt-4">
-                <GroveMap />
-              </div>
-              <p className="mt-2 text-xs text-ink/50">Not to scale. The copse is bigger than it looks; the one-way is stricter than it looks.</p>
-            </Reveal>
-          </div>
-        </div>
-      </section>
-
-      {/* safeguarding strip */}
-      <section className="border-t-2 border-navy-900 bg-navy-950 text-chalk-50">
-        <div className="mx-auto flex max-w-7xl flex-col gap-4 px-5 py-10 sm:flex-row sm:items-center sm:justify-between sm:px-8">
-          <p className="font-display text-xl font-semibold sm:text-2xl">
-            Safeguarding concern? <em className="italic text-gold-300">Skip the form.</em>
-          </p>
-          <p className="max-w-xl text-sm leading-relaxed text-navy-200">
-            Call the office and ask for Miss Reed, our Designated Safeguarding Lead, or write to{" "}
-            <a href="mailto:safeguarding@ashgrove-academy.sch.uk" className="link-draw font-bold text-gold-300">safeguarding@ashgrove-academy.sch.uk</a>. Every concern is read the same day.
-          </p>
         </div>
       </section>
     </>

@@ -1,6 +1,5 @@
-import { HashRouter, Link, Route, Routes } from "react-router-dom";
-import { Layout, ScrollToTop } from "./components/layout";
-import { Crest, IcArrow } from "./components/icons";
+import { HashRouter, Route, Routes, Link } from "react-router-dom";
+import Layout from "./components/layout";
 import Home from "./pages/Home";
 import About from "./pages/About";
 import Academics from "./pages/Academics";
@@ -9,24 +8,24 @@ import NewsEvents from "./pages/NewsEvents";
 import Gallery from "./pages/Gallery";
 import Contact from "./pages/Contact";
 import Portal from "./pages/Portal";
+import { IcLogo, IcArrow } from "./components/icons";
 
 function NotFound() {
   return (
-    <section className="blueprint relative overflow-hidden bg-navy-950 text-chalk-50">
-      <div className="relative mx-auto flex max-w-7xl flex-col items-start px-5 py-24 sm:px-8 lg:py-32">
-        <Crest className="h-16 w-auto" />
-        <p className="font-display mt-8 text-[6rem] leading-none font-bold text-navy-800 sm:text-[10rem]">404</p>
-        <h1 className="font-display -mt-4 text-4xl font-semibold sm:text-6xl">
-          This corridor <em className="italic text-gold-300">doesn't exist.</em>
-        </h1>
-        <p className="mt-5 max-w-xl leading-relaxed text-navy-200">
-          Even after 114 years, the caretaker hasn't found a door where you're pointing. Let's get you back to somewhere real.
-        </p>
-        <div className="mt-9 flex flex-wrap gap-4">
-          <Link to="/" className="btn btn-gold">Back to the quad <IcArrow className="h-4 w-4" /></Link>
-          <Link to="/contact" className="btn btn-ghost-light">Ask for directions</Link>
-        </div>
-      </div>
+    <section className="max-w-3xl mx-auto px-4 py-32 text-center">
+      <IcLogo className="w-16 h-16 mx-auto" />
+      <h1 className="mt-8 font-display font-extrabold text-5xl text-pine-950 tracking-tight">
+        Detention. <span className="text-gold-500">404.</span>
+      </h1>
+      <p className="mt-4 text-ink-soft">
+        This page skipped class. The rest of the school is exactly where you left it.
+      </p>
+      <Link
+        to="/"
+        className="mt-8 inline-flex items-center gap-2 rounded-full bg-pine-900 text-chalk-50 font-bold px-7 py-3.5 hover:bg-pine-800 transition-colors"
+      >
+        Back to the quad <IcArrow className="w-4 h-4" />
+      </Link>
     </section>
   );
 }
@@ -34,7 +33,6 @@ function NotFound() {
 export default function App() {
   return (
     <HashRouter>
-      <ScrollToTop />
       <Layout>
         <Routes>
           <Route path="/" element={<Home />} />

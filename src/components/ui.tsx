@@ -1,218 +1,186 @@
-import type { CSSProperties, ReactNode } from "react";
-import { Link } from "react-router-dom";
-import { useCountUp, useInView, useScramble } from "../lib/hooks";
-import { IcArrow } from "./icons";
+import React from "react";
+import { useInView, useCountUp } from "../lib/hooks";
+import { IcChevron, IcDownload } from "./icons";
 
-const rd = (ms: number) => ({ "--rd": `${ms}ms` } as CSSProperties);
+/* ---------- scroll reveal ---------- */
 
-/* ---------- scroll reveal wrapper ---------- */
 export function Reveal({
   children,
   className = "",
   delay = 0,
-  as: Tag = "div",
 }: {
-  children: ReactNode;
+  children: React.ReactNode;
   className?: string;
   delay?: number;
-  as?: "div" | "section" | "li" | "article" | "span" | "figure";
 }) {
-  const { ref, inView } = useInView<HTMLElement>();
+  const [ref, inView] = useInView<HTMLDivElement>();
   return (
-    <Tag
-      ref={ref as never}
-      data-reveal
-      className={`${className} ${inView ? "is-in" : ""}`}
-      style={rd(delay)}
+    <div
+      ref={ref}
+      className={`reveal ${inView ? "reveal-in" : ""} ${className}`}
+      style={{ ["--rd" as string]: `${delay}ms` }}
     >
       {children}
-    </Tag>
+    </div>
   );
 }
 
-/* ---------- line-mask heading reveal ---------- */
-export function Lines({
-  lines,
-  className = "",
-  as: Tag = "h2",
-  delay = 0,
-  stagger = 110,
-}: {
-  lines: ReactNode[];
-  className?: string;
-  as?: "h1" | "h2" | "h3" | "p";
-  delay?: number;
-  stagger?: number;
-}) {
-  const { ref, inView } = useInView<HTMLElement>();
-  return (
-    <Tag ref={ref as never} className={`${className} ${inView ? "is-in" : ""}`}>
-      {lines.map((l, i) => (
-        <span key={i} className="lr-line" style={rd(delay + i * stagger)}>
-          <span>{l}</span>
-        </span>
-      ))}
-    </Tag>
-  );
-}
+/* ---------- section heading ---------- */
 
-/* ---------- scramble-decode text ---------- */
-export function Scramble({ text, className = "", play = true }: { text: string; className?: string; play?: boolean }) {
-  const out = useScramble(text, play);
-  return <span className={className}>{out}</span>;
-}
-
-/* ---------- animated counter ---------- */
-export function CountUp({
-  to,
-  prefix = "",
-  suffix = "",
-  className = "",
-}: {
-  to: number;
-  prefix?: string;
-  suffix?: string;
-  className?: string;
-}) {
-  const { ref, inView } = useInView<HTMLSpanElement>(0.4);
-  const v = useCountUp(to, inView);
-  return (
-    <span ref={ref} className={className}>
-      {prefix}
-      {v.toLocaleString("en-GB")}
-      {suffix}
-    </span>
-  );
-}
-
-/* ---------- small-caps label with gold rule ---------- */
-export function Kicker({ children, tone = "dark" }: { children: ReactNode; tone?: "dark" | "light" | "gold" }) {
-  const color = tone === "light" ? "text-gold-300" : tone === "gold" ? "text-gold-600" : "text-navy-600";
-  return (
-    <p className={`kicker flex items-center gap-3 ${color}`}>
-      <span className={`inline-block h-px w-8 ${tone === "light" || tone === "gold" ? "bg-gold-400" : "bg-gold-500"}`} />
-      {children}
-    </p>
-  );
-}
-
-/* ---------- section heading block ---------- */
 export function SectionHead({
   kicker,
   title,
-  lede,
-  tone = "dark",
+  body,
+  dark = false,
   className = "",
 }: {
   kicker: string;
-  title: ReactNode[];
-  lede?: string;
-  tone?: "dark" | "light";
+  title: React.ReactNode;
+  body?: string;
+  dark?: boolean;
   className?: string;
 }) {
   return (
-    <div className={className}>
-      <Reveal>
-        <Kicker tone={tone}>{kicker}</Kicker>
-      </Reveal>
-      <Lines
-        as="h2"
-        lines={title}
-        className={`font-display mt-4 text-4xl leading-[1.04] font-semibold tracking-tight sm:text-5xl ${
-          tone === "light" ? "text-chalk-50" : "text-navy-900"
+    <Reveal className={`max-w-2xl ${className}`}>
+      <p className={`kicker ${dark ? "text-gold-300" : "text-pine-600"}`}>{kicker}</p>
+      <h2
+        className={`font-display font-bold leading-[1.04] tracking-tight mt-4 text-3xl sm:text-4xl lg:text-[2.75rem] ${
+          dark ? "text-chalk-50" : "text-pine-950"
         }`}
-      />
-      {lede && (
-        <Reveal delay={160}>
-          <p className={`mt-5 max-w-xl text-base leading-relaxed sm:text-lg ${tone === "light" ? "text-navy-200" : "text-ink/70"}`}>
-            {lede}
-          </p>
-        </Reveal>
+      >
+        {title}
+      </h2>
+      {body && (
+        <p className={`mt-5 text-[1.05rem] leading-relaxed ${dark ? "text-pine-100/85" : "text-ink-soft"}`}>
+          {body}
+        </p>
       )}
+    </Reveal>
+  );
+}
+
+/* ---------- animated stat ---------- */
+
+export function StatBlock({
+  value,
+  suffix = "",
+  label,
+  dark = false,
+}: {
+  value: number;
+  suffix?: string;
+  label: string;
+  dark?: boolean;
+}) {
+  const [ref, inView] = useInView<HTMLDivElement>(0.4);
+  const n = useCountUp(value, inView);
+  return (
+    <div ref={ref}>
+      <div
+        className={`font-display font-extrabold tracking-tight text-4xl sm:text-[2.6rem] leading-none ${
+          dark ? "text-gold-300" : "text-pine-900"
+        }`}
+      >
+        {n.toLocaleString()}
+        {suffix && <span className={dark ? "text-chalk-100" : "text-gold-500"}>{suffix}</span>}
+      </div>
+      <div className={`mt-2 text-sm font-medium ${dark ? "text-pine-100/75" : "text-ink-soft"}`}>{label}</div>
     </div>
   );
 }
 
-/* ---------- page hero band ---------- */
-export function PageHero({
-  kicker,
-  title,
-  lede,
+/* ---------- accordion ---------- */
+
+export function Accordion({
+  items,
+  dark = false,
+  defaultOpen = 0,
+}: {
+  items: { title: React.ReactNode; body: React.ReactNode }[];
+  dark?: boolean;
+  defaultOpen?: number | null;
+}) {
+  const [open, setOpen] = React.useState<number | null>(defaultOpen);
+  return (
+    <div className={`divide-y ${dark ? "divide-pine-800" : "divide-pine-900/10"}`}>
+      {items.map((it, i) => {
+        const isOpen = open === i;
+        return (
+          <div key={i}>
+            <button
+              onClick={() => setOpen(isOpen ? null : i)}
+              aria-expanded={isOpen}
+              className={`w-full flex items-center justify-between gap-6 py-5 text-left group ${
+                dark ? "text-chalk-50" : "text-pine-950"
+              }`}
+            >
+              <span className="font-display font-semibold text-lg sm:text-xl leading-snug group-hover:text-gold-500 transition-colors">
+                {it.title}
+              </span>
+              <span
+                className={`shrink-0 w-8 h-8 rounded-full border grid place-items-center transition-all duration-300 ${
+                  isOpen
+                    ? "bg-gold-400 border-gold-400 text-pine-950 rotate-180"
+                    : dark
+                    ? "border-pine-700 text-chalk-100"
+                    : "border-pine-900/20 text-pine-900"
+                }`}
+              >
+                <IcChevron className="w-4 h-4" />
+              </span>
+            </button>
+            <div
+              className="grid transition-[grid-template-rows] duration-400 ease-out"
+              style={{ gridTemplateRows: isOpen ? "1fr" : "0fr" }}
+            >
+              <div className="overflow-hidden">
+                <div className={`pb-6 pr-10 leading-relaxed ${dark ? "text-pine-100/85" : "text-ink-soft"}`}>
+                  {it.body}
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/* ---------- form primitives ---------- */
+
+export function Field({
+  label,
+  error,
   children,
 }: {
-  kicker: string;
-  title: ReactNode[];
-  lede?: string;
-  children?: ReactNode;
+  label: string;
+  error?: string;
+  children: React.ReactNode;
 }) {
   return (
-    <section className="blueprint relative overflow-hidden bg-navy-950 text-chalk-50">
-      <div className="pointer-events-none absolute -right-24 -top-24 h-96 w-96 rounded-full border-[28px] border-navy-800/60" />
-      <div className="pointer-events-none absolute -bottom-40 -left-24 h-[26rem] w-[26rem] rounded-full border-[36px] border-navy-900/80" />
-      <div className="relative mx-auto max-w-7xl px-5 py-16 sm:px-8 sm:py-20 lg:py-24">
-        <div className="max-w-3xl">
-          <Reveal>
-            <Kicker tone="light">{kicker}</Kicker>
-          </Reveal>
-          <Lines
-            as="h1"
-            lines={title}
-            className="font-display mt-5 text-5xl leading-[1.02] font-semibold tracking-tight text-chalk-50 sm:text-6xl lg:text-7xl"
-          />
-          {lede && (
-            <Reveal delay={200}>
-              <p className="mt-6 max-w-2xl text-base leading-relaxed text-navy-200 sm:text-lg">{lede}</p>
-            </Reveal>
-          )}
-        </div>
-        {children}
-      </div>
-    </section>
-  );
-}
-
-/* ---------- arrow link ---------- */
-export function ArrowLink({ to, children, tone = "dark", onClick }: { to: string; children: ReactNode; tone?: "dark" | "light"; onClick?: () => void }) {
-  const color = tone === "light" ? "text-gold-300" : "text-navy-800";
-  return (
-    <Link
-      to={to}
-      onClick={onClick}
-      className={`group inline-flex items-center gap-2 text-sm font-bold tracking-wide uppercase ${color}`}
-    >
-      <span className="link-draw">{children}</span>
-      <IcArrow className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1.5" />
-    </Link>
-  );
-}
-
-/* ---------- chip ---------- */
-export function Chip({ children, className = "" }: { children: ReactNode; className?: string }) {
-  return (
-    <span className={`inline-block px-2.5 py-1 text-[0.66rem] font-bold tracking-[0.14em] uppercase ${className}`}>
+    <label className="block">
+      <span className="block text-[0.7rem] font-bold uppercase tracking-[0.14em] text-pine-800 mb-1.5">
+        {label}
+      </span>
       {children}
-    </span>
+      {error && <span className="block mt-1.5 text-xs font-semibold text-gold-600">{error}</span>}
+    </label>
   );
 }
 
-/* ---------- framed image with ken burns ---------- */
-export function FramedImage({
-  src,
-  alt,
-  className = "",
-  imgClassName = "",
-  kenburns = true,
-}: {
-  src: string;
-  alt: string;
-  className?: string;
-  imgClassName?: string;
-  kenburns?: boolean;
-}) {
+export const inputCls =
+  "w-full rounded-lg border border-pine-900/15 bg-white/70 px-4 py-3 text-[0.95rem] text-ink placeholder:text-pine-900/35 outline-none transition-all focus:border-pine-600 focus:bg-white focus:ring-4 focus:ring-pine-600/10";
+
+/* ---------- resource download button ---------- */
+
+export function DownloadBtn({ onClick, label }: { onClick: () => void; label?: string }) {
   return (
-    <div className={`relative overflow-hidden bg-navy-900 ${className}`}>
-      <img src={src} alt={alt} loading="lazy" className={`h-full w-full object-cover ${kenburns ? "kenburns" : ""} ${imgClassName}`} />
-      <div className="pointer-events-none absolute inset-0 ring-1 ring-navy-900/20 ring-inset" />
-    </div>
+    <button
+      onClick={onClick}
+      className="inline-flex items-center gap-2 rounded-full border border-pine-900/20 bg-white/60 px-4 py-2 text-sm font-semibold text-pine-900 transition-all hover:bg-pine-900 hover:text-chalk-50 hover:border-pine-900 active:scale-[0.97]"
+    >
+      <IcDownload className="w-4 h-4" />
+      {label ?? "Download PDF"}
+    </button>
   );
 }

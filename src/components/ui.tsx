@@ -1,159 +1,218 @@
-import React from "react";
-import { useCountUp, useOnScreen } from "../lib/hooks";
+import type { CSSProperties, ReactNode } from "react";
+import { Link } from "react-router-dom";
+import { useCountUp, useInView, useScramble } from "../lib/hooks";
+import { IcArrow } from "./icons";
 
-/* ---------------------------- Reveal ------------------------------ */
+const rd = (ms: number) => ({ "--rd": `${ms}ms` } as CSSProperties);
+
+/* ---------- scroll reveal wrapper ---------- */
 export function Reveal({
   children,
-  delay = 0,
-  tilt = 0,
   className = "",
+  delay = 0,
   as: Tag = "div",
 }: {
-  children: React.ReactNode;
-  delay?: number;
-  tilt?: number;
+  children: ReactNode;
   className?: string;
-  as?: "div" | "section" | "article" | "li" | "figure";
+  delay?: number;
+  as?: "div" | "section" | "li" | "article" | "span" | "figure";
 }) {
-  const [ref, inView] = useOnScreen<HTMLDivElement>();
+  const { ref, inView } = useInView<HTMLElement>();
   return (
     <Tag
-      ref={ref as React.RefObject<HTMLDivElement & HTMLLIElement>}
-      style={{ "--rv-delay": `${delay}ms`, "--rv-rot": `${tilt}deg` } as React.CSSProperties}
-      className={`${tilt ? "reveal reveal-tilt" : "reveal"} ${inView ? "is-in" : ""} ${className}`}
+      ref={ref as never}
+      data-reveal
+      className={`${className} ${inView ? "is-in" : ""}`}
+      style={rd(delay)}
     >
       {children}
     </Tag>
   );
 }
 
-/* --------------------- Line-mask heading -------------------------- */
-export function MaskHeading({ lines, className = "" }: { lines: React.ReactNode[]; className?: string }) {
-  const [ref, inView] = useOnScreen<HTMLHeadingElement>(0.3);
+/* ---------- line-mask heading reveal ---------- */
+export function Lines({
+  lines,
+  className = "",
+  as: Tag = "h2",
+  delay = 0,
+  stagger = 110,
+}: {
+  lines: ReactNode[];
+  className?: string;
+  as?: "h1" | "h2" | "h3" | "p";
+  delay?: number;
+  stagger?: number;
+}) {
+  const { ref, inView } = useInView<HTMLElement>();
   return (
-    <h2 ref={ref as React.RefObject<HTMLHeadingElement>} className={`${inView ? "is-in" : ""} ${className}`}>
+    <Tag ref={ref as never} className={`${className} ${inView ? "is-in" : ""}`}>
       {lines.map((l, i) => (
-        <span className="mask-line" key={i}>
-          <span style={{ "--ml-delay": `${i * 120}ms` } as React.CSSProperties}>{l}</span>
+        <span key={i} className="lr-line" style={rd(delay + i * stagger)}>
+          <span>{l}</span>
         </span>
       ))}
-    </h2>
+    </Tag>
   );
 }
 
-/* ----------------------- Section eyebrow -------------------------- */
-export function Eyebrow({ children, tone = "dark" }: { children: React.ReactNode; tone?: "dark" | "light" | "gold" }) {
-  const color =
-    tone === "light" ? "text-gold-300" : tone === "gold" ? "text-gold-600" : "text-crimson-600";
+/* ---------- scramble-decode text ---------- */
+export function Scramble({ text, className = "", play = true }: { text: string; className?: string; play?: boolean }) {
+  const out = useScramble(text, play);
+  return <span className={className}>{out}</span>;
+}
+
+/* ---------- animated counter ---------- */
+export function CountUp({
+  to,
+  prefix = "",
+  suffix = "",
+  className = "",
+}: {
+  to: number;
+  prefix?: string;
+  suffix?: string;
+  className?: string;
+}) {
+  const { ref, inView } = useInView<HTMLSpanElement>(0.4);
+  const v = useCountUp(to, inView);
   return (
-    <p className={`flex items-center gap-3 text-[11px] font-extrabold uppercase tracking-[0.28em] ${color}`}>
-      <span className={`inline-block h-[2px] w-8 ${tone === "light" ? "bg-gold-400" : "bg-current"}`} />
+    <span ref={ref} className={className}>
+      {prefix}
+      {v.toLocaleString("en-GB")}
+      {suffix}
+    </span>
+  );
+}
+
+/* ---------- small-caps label with gold rule ---------- */
+export function Kicker({ children, tone = "dark" }: { children: ReactNode; tone?: "dark" | "light" | "gold" }) {
+  const color = tone === "light" ? "text-gold-300" : tone === "gold" ? "text-gold-600" : "text-navy-600";
+  return (
+    <p className={`kicker flex items-center gap-3 ${color}`}>
+      <span className={`inline-block h-px w-8 ${tone === "light" || tone === "gold" ? "bg-gold-400" : "bg-gold-500"}`} />
       {children}
     </p>
   );
 }
 
-/* -------------------------- Stat block ---------------------------- */
-export function StatBlock({
-  value,
-  suffix,
-  label,
-  delay = 0,
-  light = false,
+/* ---------- section heading block ---------- */
+export function SectionHead({
+  kicker,
+  title,
+  lede,
+  tone = "dark",
+  className = "",
 }: {
-  value: number;
-  suffix: string;
-  label: string;
-  delay?: number;
-  light?: boolean;
+  kicker: string;
+  title: ReactNode[];
+  lede?: string;
+  tone?: "dark" | "light";
+  className?: string;
 }) {
-  const [ref, inView] = useOnScreen<HTMLDivElement>(0.4);
-  const n = useCountUp(value, inView);
   return (
-    <div
-      ref={ref as React.RefObject<HTMLDivElement>}
-      style={{ "--rv-delay": `${delay}ms` } as React.CSSProperties}
-      className={`reveal ${inView ? "is-in" : ""}`}
-    >
-      <div className={`font-display font-black leading-none text-4xl md:text-5xl ${light ? "text-gold-300" : "text-navy-900"}`}>
-        {n.toLocaleString("en-GB")}
-        <span className={`text-xl md:text-2xl font-bold align-baseline ml-1 ${light ? "text-navy-200" : "text-gold-600"}`}>
-          {suffix}
-        </span>
-      </div>
-      <p className={`mt-2 text-sm font-semibold ${light ? "text-navy-100" : "text-navy-700/80"}`}>{label}</p>
+    <div className={className}>
+      <Reveal>
+        <Kicker tone={tone}>{kicker}</Kicker>
+      </Reveal>
+      <Lines
+        as="h2"
+        lines={title}
+        className={`font-display mt-4 text-4xl leading-[1.04] font-semibold tracking-tight sm:text-5xl ${
+          tone === "light" ? "text-chalk-50" : "text-navy-900"
+        }`}
+      />
+      {lede && (
+        <Reveal delay={160}>
+          <p className={`mt-5 max-w-xl text-base leading-relaxed sm:text-lg ${tone === "light" ? "text-navy-200" : "text-ink/70"}`}>
+            {lede}
+          </p>
+        </Reveal>
+      )}
     </div>
   );
 }
 
-/* ------------------------- Page header ---------------------------- */
-export function PageHeader({
+/* ---------- page hero band ---------- */
+export function PageHero({
   kicker,
   title,
-  intro,
+  lede,
   children,
 }: {
   kicker: string;
-  title: React.ReactNode[];
-  intro: string;
-  children?: React.ReactNode;
+  title: ReactNode[];
+  lede?: string;
+  children?: ReactNode;
 }) {
   return (
-    <header className="relative overflow-hidden bg-navy-900 dark-weave text-chalk-50">
-      <div className="pointer-events-none absolute inset-0 opacity-[0.06]">
-        <CrestWatermark />
-      </div>
-      <div className="relative mx-auto max-w-7xl px-5 md:px-8 pt-14 pb-16 md:pt-20 md:pb-24">
-        <Reveal>
-          <Eyebrow tone="light">{kicker}</Eyebrow>
-        </Reveal>
-        <MaskHeading
-          lines={title}
-          className="mt-5 font-display font-black text-[clamp(2.4rem,5.5vw,4.2rem)] leading-[1.02] tracking-tight max-w-3xl"
-        />
-        <Reveal delay={200}>
-          <p className="mt-6 max-w-2xl text-base md:text-lg text-navy-100 leading-relaxed">{intro}</p>
-        </Reveal>
+    <section className="blueprint relative overflow-hidden bg-navy-950 text-chalk-50">
+      <div className="pointer-events-none absolute -right-24 -top-24 h-96 w-96 rounded-full border-[28px] border-navy-800/60" />
+      <div className="pointer-events-none absolute -bottom-40 -left-24 h-[26rem] w-[26rem] rounded-full border-[36px] border-navy-900/80" />
+      <div className="relative mx-auto max-w-7xl px-5 py-16 sm:px-8 sm:py-20 lg:py-24">
+        <div className="max-w-3xl">
+          <Reveal>
+            <Kicker tone="light">{kicker}</Kicker>
+          </Reveal>
+          <Lines
+            as="h1"
+            lines={title}
+            className="font-display mt-5 text-5xl leading-[1.02] font-semibold tracking-tight text-chalk-50 sm:text-6xl lg:text-7xl"
+          />
+          {lede && (
+            <Reveal delay={200}>
+              <p className="mt-6 max-w-2xl text-base leading-relaxed text-navy-200 sm:text-lg">{lede}</p>
+            </Reveal>
+          )}
+        </div>
         {children}
       </div>
-      <div className="h-1.5 w-full bg-gold-400" />
-    </header>
+    </section>
   );
 }
 
-function CrestWatermark() {
+/* ---------- arrow link ---------- */
+export function ArrowLink({ to, children, tone = "dark", onClick }: { to: string; children: ReactNode; tone?: "dark" | "light"; onClick?: () => void }) {
+  const color = tone === "light" ? "text-gold-300" : "text-navy-800";
   return (
-    <svg viewBox="0 0 24 24" className="absolute -right-16 -bottom-24 h-[26rem] w-[26rem] text-chalk-50" fill="none" stroke="currentColor" strokeWidth="0.5">
-      <path d="M12 1.8 21 5.2v6.3c0 5.6-3.9 9-9 10.7-5.1-1.7-9-5.1-9-10.7V5.2Z" />
-      <path d="M12 12.6c-1.6-1.3-3.6-1.5-5-1.3v5.2c1.4-.2 3.4 0 5 1.3 1.6-1.3 3.6-1.5 5-1.3v-5.2c-1.4-.2-3.4 0-5 1.3Z" />
-      <path d="M12 12.6v5.2" />
-    </svg>
-  );
-}
-
-/* --------------------------- Tag chip ----------------------------- */
-export function Chip({ children, active, onClick }: { children: React.ReactNode; active?: boolean; onClick?: () => void }) {
-  return (
-    <button
+    <Link
+      to={to}
       onClick={onClick}
-      className={`rounded-full border px-4 py-1.5 text-[13px] font-bold tracking-wide transition-all duration-300 ${
-        active
-          ? "border-navy-900 bg-navy-900 text-chalk-50 shadow-md"
-          : "border-navy-900/25 bg-transparent text-navy-800 hover:border-navy-900 hover:bg-navy-900/5"
-      }`}
+      className={`group inline-flex items-center gap-2 text-sm font-bold tracking-wide uppercase ${color}`}
     >
-      {children}
-    </button>
+      <span className="link-draw">{children}</span>
+      <IcArrow className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1.5" />
+    </Link>
   );
 }
 
-/* --------------------- Section divider strip ---------------------- */
-export function GoldRule({ className = "" }: { className?: string }) {
+/* ---------- chip ---------- */
+export function Chip({ children, className = "" }: { children: ReactNode; className?: string }) {
   return (
-    <div className={`flex items-center gap-2 ${className}`}>
-      <span className="h-[3px] w-14 bg-gold-400" />
-      <span className="h-[3px] w-3 bg-gold-400/60" />
-      <span className="h-[3px] w-1.5 bg-gold-400/30" />
+    <span className={`inline-block px-2.5 py-1 text-[0.66rem] font-bold tracking-[0.14em] uppercase ${className}`}>
+      {children}
+    </span>
+  );
+}
+
+/* ---------- framed image with ken burns ---------- */
+export function FramedImage({
+  src,
+  alt,
+  className = "",
+  imgClassName = "",
+  kenburns = true,
+}: {
+  src: string;
+  alt: string;
+  className?: string;
+  imgClassName?: string;
+  kenburns?: boolean;
+}) {
+  return (
+    <div className={`relative overflow-hidden bg-navy-900 ${className}`}>
+      <img src={src} alt={alt} loading="lazy" className={`h-full w-full object-cover ${kenburns ? "kenburns" : ""} ${imgClassName}`} />
+      <div className="pointer-events-none absolute inset-0 ring-1 ring-navy-900/20 ring-inset" />
     </div>
   );
 }

@@ -1,474 +1,744 @@
 /* ------------------------------------------------------------------ */
-/*  Ashgrove Academy — central content & data layer                    */
+/*  Ashgrove Academy — central data layer                              */
 /* ------------------------------------------------------------------ */
 
-export const IMAGES = {
-  hero: "https://image.qwenlm.ai/generated-images/0ea5c139-4cd8-43f9-9ba3-d3dc4988f912/_result.png",
-  classroom: "https://image.qwenlm.ai/generated-images/a1db1a94-ea3f-471b-bd6f-f45000d792bd/_result.png",
-  science: "https://image.qwenlm.ai/generated-images/107945c1-38fb-4da3-96dc-20553063d44f/_result.png",
-  library: "https://image.qwenlm.ai/generated-images/1cedfad0-035a-4860-9187-a393a02caf24/_result.png",
-  sports: "https://image.qwenlm.ai/generated-images/b10b72ce-5cb8-4f47-baa9-022d2fb4f5ce/_result.png",
-  arts: "https://image.qwenlm.ai/generated-images/d0bd0988-7e2b-420d-9ff6-e80bab26c519/_result.png",
-  music: "https://image.qwenlm.ai/generated-images/3d697bfb-ca85-4c43-8672-5b85d89cc016/_result.png",
+export const IMG = {
+  quad: "https://image.qwenlm.ai/generated-images/d2608f65-1de9-4cff-959d-ce47c7d8ba17/_result.png",
+  library: "https://image.qwenlm.ai/generated-images/555e1b25-0ef0-469d-b4d1-4029e72cc686/_result.png",
+  lab: "https://image.qwenlm.ai/generated-images/292a8cd5-c18d-449c-987e-37de39ae9824/_result.png",
+  art: "https://image.qwenlm.ai/generated-images/ffa4c681-7a5f-4294-b155-ac2b08fd4174/_result.png",
+  sports: "https://image.qwenlm.ai/generated-images/11faeeb7-f30f-4d22-b8a8-44a5a37a89a5/_result.png",
+  hall: "https://image.qwenlm.ai/generated-images/c9082cdf-6847-42b1-9c91-9c9dcacd0d64/_result.png",
+  classroom: "https://image.qwenlm.ai/generated-images/d173cc4c-ddb9-49c2-9116-d701cccc6fb3/_result.png",
+  aerial: "https://image.qwenlm.ai/generated-images/1791ecf4-1e6f-4362-8525-5fc91464549c/_result.png",
 };
 
-/* ----------------------------- dates ------------------------------ */
-export function addDays(base: Date, days: number): Date {
-  const d = new Date(base);
+/* ---------- date helpers ---------- */
+
+export function dayOffset(days: number, hour = 9, minute = 0): Date {
+  const d = new Date();
   d.setDate(d.getDate() + days);
+  d.setHours(hour, minute, 0, 0);
   return d;
 }
-const NOW = new Date();
 
-export function fmtDate(d: Date, opts?: Intl.DateTimeFormatOptions): string {
-  return d.toLocaleDateString("en-GB", opts ?? { day: "numeric", month: "short", year: "numeric" });
-}
-export function fmtDayMonth(d: Date): { day: string; month: string } {
-  return {
-    day: d.toLocaleDateString("en-GB", { day: "2-digit" }),
-    month: d.toLocaleDateString("en-GB", { month: "short" }),
-  };
+export const fmt = (d: Date, opts?: Intl.DateTimeFormatOptions) =>
+  new Intl.DateTimeFormat("en-GB", opts ?? { day: "numeric", month: "short", year: "numeric" }).format(d);
+
+export const fmtShort = (d: Date) => fmt(d, { day: "numeric", month: "short" });
+export const fmtWeekday = (d: Date) => fmt(d, { weekday: "short", day: "numeric", month: "short" });
+export const fmtTime = (d: Date) =>
+  new Intl.DateTimeFormat("en-GB", { hour: "2-digit", minute: "2-digit" }).format(d);
+
+/* ---------- school facts ---------- */
+
+export const SCHOOL = {
+  name: "Ashgrove Academy",
+  motto: "Radices et Alae",
+  mottoEn: "Roots and Wings",
+  founded: 1912,
+  address: "14 Ashgrove Lane, Hartfield, Kent TN8 7QR",
+  phone: "+44 (0)1892 654 210",
+  email: "hello@ashgrove-academy.sch.uk",
+  admissionsEmail: "admissions@ashgrove-academy.sch.uk",
+};
+
+export const navLinks = [
+  { label: "Home", to: "/" },
+  { label: "About Us", to: "/about" },
+  { label: "Academics", to: "/academics" },
+  { label: "Admissions", to: "/admissions" },
+  { label: "News & Events", to: "/news" },
+  { label: "Gallery", to: "/gallery" },
+  { label: "Contact Us", to: "/contact" },
+];
+
+/* ---------- bell schedule ---------- */
+
+export interface BellPeriod {
+  name: string;
+  start: string;
+  end: string;
 }
 
-/* -------------------------- announcements ------------------------- */
-export interface Announcement {
+export const bellSchedule: BellPeriod[] = [
+  { name: "Registration", start: "08:30", end: "08:45" },
+  { name: "Period 1", start: "08:50", end: "09:50" },
+  { name: "Morning Break", start: "09:50", end: "10:10" },
+  { name: "Period 2", start: "10:10", end: "11:10" },
+  { name: "Period 3", start: "11:15", end: "12:15" },
+  { name: "Lunch", start: "12:15", end: "13:15" },
+  { name: "Period 4", start: "13:15", end: "14:15" },
+  { name: "Period 5", start: "14:20", end: "15:20" },
+  { name: "Clubs & Prep", start: "15:30", end: "16:30" },
+];
+
+const toMin = (t: string) => {
+  const [h, m] = t.split(":").map(Number);
+  return h * 60 + m;
+};
+
+export type BellState =
+  | { status: "weekend"; label: string; current: null }
+  | { status: "before"; label: string; current: null }
+  | { status: "during"; label: string; current: BellPeriod }
+  | { status: "after"; label: string; current: null };
+
+export function currentPeriod(now: Date): BellState {
+  const day = now.getDay();
+  if (day === 0 || day === 6) return { status: "weekend", label: "Weekend — no classes today", current: null };
+  const mins = now.getHours() * 60 + now.getMinutes();
+  if (mins < toMin(bellSchedule[0].start))
+    return { status: "before", label: "Gates open 08:00 · Registration 08:30", current: null };
+  for (const p of bellSchedule) {
+    if (mins >= toMin(p.start) && mins < toMin(p.end))
+      return { status: "during", label: `${p.name} · until ${p.end}`, current: p };
+  }
+  return { status: "after", label: "School day complete — see you tomorrow", current: null };
+}
+
+/* ---------- announcements & quick actions ---------- */
+
+export const announcements = [
+  `Spring Open Morning — ${fmtShort(dayOffset(17, 10))}, booking now open`,
+  "Term 2 half-term holiday begins " + fmtShort(dayOffset(24)),
+  "U14 footballers through to the county final — well done, Grove!",
+  "New Design Technology wing opens this September",
+  "Bus route 7 timetable updated from Monday",
+  "Year 6 production tickets on sale via the parent portal",
+];
+
+export const quickActions = [
+  { label: "Admissions enquiries", meta: "2026 entry now open", to: "/admissions" },
+  { label: "Term dates & calendar", meta: "Academic year 2025–26", download: "term-calendar" },
+  { label: "Bus routes & times", meta: "7 routes across Kent", download: "bus-routes" },
+  { label: "This week's lunch menu", meta: "Kitchen of Mrs. Hale", download: "lunch-menu" },
+];
+
+/* ---------- academics ---------- */
+
+export interface Division {
+  num: string;
   id: string;
-  tag: string;
-  tagColor: string;
-  title: string;
-  date: string;
-  pinned?: boolean;
-  body: string;
+  name: string;
+  ages: string;
+  years: string;
+  blurb: string;
+  highlights: string[];
+  subjects: string[];
 }
 
-export const ANNOUNCEMENTS: Announcement[] = [
+export const divisions: Division[] = [
   {
-    id: "a1", tag: "Term dates", tagColor: "bg-navy-900 text-chalk-50",
-    title: "Half-term begins Friday 24th", date: fmtDate(addDays(NOW, 6)), pinned: true,
-    body: "School closes at 12:30 on the last day of term. Boarding houses empty by 15:00; the school office remains open 09:00–13:00 throughout the break.",
+    num: "01",
+    id: "early-years",
+    name: "Early Years",
+    ages: "Ages 4–5",
+    years: "Reception",
+    blurb:
+      "A woodland-edge setting where play is the serious work of childhood. Forest mornings, phonics through song, and mud under the fingernails — every day.",
+    highlights: ["Forest school every Friday", "1:8 adult ratio", "Daily music & movement"],
+    subjects: ["Phonics & early reading", "Number play", "Forest school", "Creative studio", "Music & movement"],
   },
   {
-    id: "a2", tag: "Admissions", tagColor: "bg-gold-500 text-navy-900",
-    title: "Open Morning — booking now open", date: fmtDate(addDays(NOW, 18)), pinned: true,
-    body: "Join the Head, Dr Eleanor Ashworth, for tours, taster lessons and a Q&A in the Great Hall. Places are limited to 60 families per session.",
+    num: "02",
+    id: "lower-school",
+    name: "Lower School",
+    ages: "Ages 5–11",
+    years: "Years 1–6",
+    blurb:
+      "The habits of a lifetime formed early: curiosity, kindness and craft. Topic-led learning, specialist French and music from Year 1, and sport every single day.",
+    highlights: ["Specialist teaching from Year 3", "Weekly library period", "Instrumental programme"],
+    subjects: ["English", "Mathematics", "Science", "French", "History & Geography", "Music", "Art", "PE & Swimming"],
   },
   {
-    id: "a3", tag: "Sport", tagColor: "bg-moss-600 text-chalk-50",
-    title: "1st XV fixture moved to home ground", date: fmtDate(addDays(NOW, 4)),
-    body: "Saturday's match against Oakfield will now be played on the Upper Pitch. Kick-off 14:00 — supporters welcome, tea tent open from 13:00.",
+    num: "03",
+    id: "middle-school",
+    name: "Middle School",
+    ages: "Ages 11–16",
+    years: "Years 7–11",
+    blurb:
+      "A broad academic core meets genuine choice. Twenty-eight GCSE options, a personal tutor who knows your name, and the Duke of Edinburgh's Award from Year 9.",
+    highlights: ["28 GCSE options", "Duke of Edinburgh's Award", "1:1 laptop from Year 7"],
+    subjects: ["English Lang & Lit", "Mathematics", "Triple Science", "Latin or Spanish", "Computer Science", "Design & Tech", "Drama", "Food & Nutrition"],
   },
   {
-    id: "a4", tag: "Uniform", tagColor: "bg-crimson-600 text-chalk-50",
-    title: "Winter uniform from Monday", date: fmtDate(addDays(NOW, 9)),
-    body: "Blazers and ties return for all year groups. House scarves are optional; coats must be plain navy or black.",
-  },
-  {
-    id: "a5", tag: "Music", tagColor: "bg-navy-700 text-chalk-50",
-    title: "Winter Concert tickets released", date: fmtDate(addDays(NOW, 12)),
-    body: "The Chapel Orchestra and Senior Chamber Choir perform Vaughan Williams and Rutter. Free tickets via the school office.",
-  },
-  {
-    id: "a6", tag: "Exams", tagColor: "bg-navy-900 text-chalk-50",
-    title: "Mock timetable published", date: fmtDate(addDays(NOW, 2)),
-    body: "Year 11 and 13 mock examination timetables are now on the portal. Individual statements will be emailed to parents this week.",
+    num: "04",
+    id: "senior-school",
+    name: "Sixth Form",
+    ages: "Ages 16–18",
+    years: "Years 12–13",
+    blurb:
+      "A collegiate atmosphere with 26 A-levels, the Extended Project, and a university office that has guided offers from Oxford to the conservatoires.",
+    highlights: ["26 A-level choices", "EPQ for every student", "Dedicated university office"],
+    subjects: ["Sciences", "Humanities", "Modern Languages", "Economics", "Art & Design", "Music Technology", "Psychology", "Further Maths"],
   },
 ];
 
-export const TICKER_ITEMS = ANNOUNCEMENTS.map((a) => `${a.tag.toUpperCase()} · ${a.title} — ${a.date}`);
+export const curriculumAreas = [
+  { icon: "book", name: "English & Literature", desc: "From Beowulf to Bernardine Evaristo — reading widely, arguing well." },
+  { icon: "ruler", name: "Mathematics", desc: "Two sets from Year 7, UKMT challenges, and Further Maths in Sixth Form." },
+  { icon: "flask", name: "Sciences", desc: "Triple science as standard; a new £2.4m laboratory wing opens in September." },
+  { icon: "globe", name: "Humanities", desc: "History, Geography, RE and Philosophy — contested ideas, civilly debated." },
+  { icon: "compass", name: "Modern Languages", desc: "French and Spanish to A-level; Latin from Year 5; Mandarin club." },
+  { icon: "brush", name: "Art & Design", desc: "Four studios, a kiln room, and an annual exhibition in the Great Hall." },
+  { icon: "music", name: "Music & Drama", desc: "320 instrumental lessons a week, three choirs, two full productions a year." },
+  { icon: "ball", name: "Sport & PE", desc: "Twelve competitive sports, a 25m pool, and fixtures against 40 schools." },
+];
 
-/* ------------------------------ news ------------------------------ */
+/* ---------- about ---------- */
+
+export const values = [
+  { num: "I", name: "Curiosity first", text: "We protect the question as carefully as we mark the answer. Every timetable begins with something worth wondering about." },
+  { num: "II", name: "Kindness as discipline", text: "Manners are not decoration. Our pastoral system — tutors, houses, listening lunches — is the spine of the school." },
+  { num: "III", name: "Craft over cramming", text: "We would rather a pupil make one beautiful thing than memorise ten forgettable ones. Depth beats coverage." },
+  { num: "IV", name: "Roots and wings", text: "Our motto is a promise: deep belonging to this grove, and the confidence to leave it for good." },
+];
+
+export const milestones = [
+  { year: "1912", title: "A school in a walled garden", text: "Edith Ashworth founds Ashgrove with 14 pupils, two mistresses and one donkey for the garden cart." },
+  { year: "1931", title: "The Great Hall", text: "Alumni fund the oak-panelled hall, stage and its famous Willis organ in a single remarkable summer." },
+  { year: "1954", title: "Co-education", text: "Ashgrove admits its first boys — and wins the Kent Schools' cricket trophy the same season." },
+  { year: "1978", title: "The music school", text: "A converted barn becomes eight practice rooms; the Chapel Choir is founded the following year." },
+  { year: "1999", title: "Sixth Form centre", text: "The Grove — a collegiate common room, study carrels and university office — opens for Years 12–13." },
+  { year: "2016", title: "All-through campus", text: "Early Years joins the family, completing our 4–18 journey on one 32-acre campus." },
+  { year: "2025", title: "Design & Technology wing", text: "Ground broken on robotics, CAD and food-science studios; doors open this September." },
+];
+
+export const staff = [
+  { name: "Dr. Margaret Ellison", role: "Headmistress", cred: "PhD History, Cambridge", initials: "ME", tint: "bg-navy-800" },
+  { name: "Mr. Samuel Okafor", role: "Deputy Head, Academic", cred: "MSc Mathematics, Imperial", initials: "SO", tint: "bg-moss-700" },
+  { name: "Mrs. Priya Nair", role: "Head of Lower School", cred: "MA Education, UCL", initials: "PN", tint: "bg-crimson-700" },
+  { name: "Mr. James Whitfield", role: "Head of Sixth Form", cred: "MPhil English, Oxford", initials: "JW", tint: "bg-navy-700" },
+  { name: "Miss Charlotte Reed", role: "Director of Pastoral Care", cred: "BSc Psychology, Bristol", initials: "CR", tint: "bg-moss-600" },
+  { name: "Mr. Tomás Ferreira", role: "Director of Sport", cred: "BSc Sport Science, Loughborough", initials: "TF", tint: "bg-navy-600" },
+];
+
+/* ---------- news & events ---------- */
+
+export type NewsCategory = "School Life" | "Academics" | "Sport" | "Arts" | "Community";
+
 export interface NewsItem {
   id: string;
-  category: string;
   title: string;
-  excerpt: string;
-  body: string;
+  category: NewsCategory;
   date: Date;
   image: string;
-  featured?: boolean;
-  author: string;
+  excerpt: string;
+  body: string[];
 }
 
-export const NEWS: NewsItem[] = [
+export const newsItems: NewsItem[] = [
   {
-    id: "n1", category: "Academics", featured: true, image: IMAGES.science, author: "Mr J. Okafor, Head of Science",
-    title: "Sixth Form team wins national chemistry Olympiad heat",
-    excerpt: "Three Ashgrove students qualified for the UK Chemistry Olympiad final after a flawless practical round in Bristol.",
-    body: "The team of Priya Nair, Tom Whitfield and Aisha Karim scored the joint-highest practical mark in the South West regional heat, held at the University of Bristol. The trio now head to Cambridge for the national final in the summer term. Head of Science Mr Okafor said the result reflected 'years of curiosity, not cramming'.",
-    date: addDays(NOW, -3),
+    id: "n1",
+    title: "Three Ashgrove pupils shortlisted for the Young Scientists Prize",
+    category: "Academics",
+    date: dayOffset(-2),
+    image: IMG.lab,
+    excerpt: "Year 10's study of mycelium insulation panels has reached the national final in London this June.",
+    body: [
+      "The project began as a lunchtime question — could the fungus growing on the compost heap keep a house warm? Eighteen months later, Amara Osei, Theo Brandt and June Park have grown, dried and tested 240 insulation panels in the science block's new climate chamber.",
+      "Their data shows mycelium boards retaining 31% more heat than standard foam at half the weight. The panel of judges at the regional heat called it 'genuinely publishable work from a school laboratory'.",
+      "The trio present at the national final in London in June, with Dr. Ellison promising 'the whole school will be there in spirit — and the Science department in person'.",
+    ],
   },
   {
-    id: "n2", category: "Sport", image: IMAGES.sports, author: "Mrs H. Doyle, Director of Sport",
-    title: "1st XV reach county final for first time in a decade",
-    excerpt: "A late try from captain Freddie Marsh sealed a 17–12 semi-final win over Oakfield on the Upper Pitch.",
-    body: "In front of a record home crowd, the 1st XV ground out a famous victory to book a place in the county final. The forwards' second-half effort turned the game, and full-back Joey Adisa's boot added eleven points. The final takes place at the county ground next month.",
-    date: addDays(NOW, -6),
+    id: "n2",
+    title: "U14 footballers storm into the county final",
+    category: "Sport",
+    date: dayOffset(-5),
+    image: IMG.sports,
+    excerpt: "A last-minute winner against Tonbridge sends the Grove to Maidstone for the title decider.",
+    body: [
+      "With the clock deep into added time and the rain doing its Kentish worst, substitute winger Freddie Anselme cut inside from the left and curled home what his captain called 'the best goal I've ever seen at this school'.",
+      "The 2–1 victory over Tonbridge completes an unbeaten run of eleven matches. Director of Sport Tomás Ferreira credits 'a squad that defends for each other first and celebrates second'.",
+      "The final takes place at the County Ground, Maidstone. A supporters' coach leaves the school gates at 13:00 — parents should book through the portal.",
+    ],
   },
   {
-    id: "n3", category: "Arts", image: IMAGES.music, author: "Mr S. Lindqvist, Director of Music",
-    title: "Chapel Orchestra shortlisted for national music award",
-    excerpt: "The orchestra's recording of the Holst St Paul's Suite has been shortlisted in the Schools' Performance category.",
-    body: "Recorded in the chapel over two evenings in October, the performance beat entries from 140 schools to reach the shortlist. Winners will be announced at a ceremony in London. A public performance of the full programme closes this term's Winter Concert.",
-    date: addDays(NOW, -11),
+    id: "n3",
+    title: "Spring Concert: 200 voices fill the Great Hall",
+    category: "Arts",
+    date: dayOffset(-9),
+    image: IMG.hall,
+    excerpt: "From the Early Years' seed-song to the Sixth Form jazz octet, a night that ended in a standing ovation.",
+    body: [
+      "The Willis organ opened the evening with Holst, and for two hours the hall moved through folk song, Vivaldi, a premiere by Year 12 composer Lena Fischer, and a massed-choir arrangement that drew every singer on stage to 203.",
+      "Director of Music, Mrs. Adeyemi, has conducted the Spring Concert for nineteen years. 'This one had the loudest silence I can remember,' she said. 'That's the compliment I keep.'",
+      "Proceeds of £2,400 go to the music bursary fund, which has supported 34 instrumental lessons this year.",
+    ],
   },
   {
-    id: "n4", category: "Community", image: IMAGES.classroom, author: "Miss R. Fenwick, Head of Lower School",
-    title: "Lower School raises £4,200 for the harvest food bank",
-    excerpt: "Pupils ran a harvest market, bake sale and sponsored readathon across three weeks.",
-    body: "Every class in the Lower School adopted a stall or challenge for the harvest appeal. Year 4's sponsored readathon alone logged 3,100 pages. The total buys roughly 420 meals for the district food bank, which collected donations at the school gate.",
-    date: addDays(NOW, -15),
+    id: "n4",
+    title: "New Design & Technology wing takes shape",
+    category: "School Life",
+    date: dayOffset(-13),
+    image: IMG.aerial,
+    excerpt: "Steel is up on the £2.4m build — robotics bay, kiln room and food-science kitchen open in September.",
+    body: [
+      "Visitors arriving through the north gate can now see the full frame of the new wing rising beside the sports hall. The building will house a robotics and CAD suite, a product-design studio with laser cutters, a kiln room, and a food-science kitchen with test benches rather than domestic cookers.",
+      "Head of Design Mr. Okonkwo has already begun consulting pupils: Year 9's brief was to design the courtyard seating, and three of their benches will be fabricated in the new workshops this summer.",
+      "An open afternoon for prospective families will be held on the first Friday of September term.",
+    ],
   },
   {
-    id: "n5", category: "Academics", image: IMAGES.library, author: "School Office",
-    title: "New archive room opens in the Old Library",
-    excerpt: "A dedicated archive preserves 112 years of school records, photographs and the founders' correspondence.",
-    body: "The project, led by the History department with support from the Friends of Ashgrove, catalogues over 9,000 items dating to 1912. Researchers and alumni may book visits through the school office; a rolling exhibition opens to pupils this term.",
-    date: addDays(NOW, -21),
+    id: "n5",
+    title: "Year 6 harvests 40kg from the walled garden",
+    category: "Community",
+    date: dayOffset(-18),
+    image: IMG.quad,
+    excerpt: "The produce went straight to the Hartfield food bank — and into last week's school soup day.",
+    body: [
+      "The walled garden, laid out in the school's founding year, produced its best autumn haul on record: 40kg of squash, chard, leeks and the famous Ashgrove eating apples.",
+      "Half the crop was delivered by the Year 6 'garden gang' to the Hartfield food bank; the other half became the centrepiece of the whole-school soup day, cooked with parents in the food rooms.",
+      "Garden mistress Mrs. Bloom says the donkey-cart tradition will return in spring — 'the children have already named the rota'.",
+    ],
   },
   {
-    id: "n6", category: "School life", image: IMAGES.arts, author: "Ms P. Adeyemi, Head of Art",
-    title: "Year 10 mural unveiled on the Design corridor",
-    excerpt: "A six-week project exploring the school's four houses now spans twelve metres of corridor wall.",
-    body: "Twenty-two artists worked in rotating crews during lunchtimes and art periods, guided by Head of Art Ms Adeyemi. The design interweaves the house emblems — raven, hart, beacon and key — with motifs drawn from the school archive.",
-    date: addDays(NOW, -27),
+    id: "n6",
+    title: "Sixth Form debate team wins the Kent Shield",
+    category: "Academics",
+    date: dayOffset(-24),
+    image: IMG.classroom,
+    excerpt: "An undefeated season ends with a final-round motion on artificial intelligence and memory.",
+    body: [
+      "The team — Zara Mahmoud, Oliver Chen and Ines Duarte — went undefeated across six rounds, closing the season with a government-bench victory on the motion 'This house believes machines should be allowed to forget'.",
+      "Captain Zara Mahmoud, who opens for Oxford interviews next month, said the season's real prize was 'learning to lose gracefully in round two and win anyway'.",
+      "Debating is open to all pupils from Year 8; trials for next season run in the first week back.",
+    ],
+  },
+  {
+    id: "n7",
+    title: "Old Grovian returns to open the new library archive",
+    category: "Community",
+    date: dayOffset(-31),
+    image: IMG.library,
+    excerpt: "Novelist and 1974 leaver Rosa Fairweather catalogued the school's founding letters herself.",
+    body: [
+      "The archive holds Edith Ashworth's founding correspondence, wartime logbooks, and every prize-giving programme since 1913. Fairweather spent four summers with the school archivist making it searchable.",
+      "'I hid in this library for five years,' she told the assembled pupils. 'It is the single most important room in the school. Protect it.'",
+      "The archive is open to pupils on Tuesday and Thursday lunchtimes, and to researchers by appointment.",
+    ],
+  },
+  {
+    id: "n8",
+    title: "Swim squad clocks three county records in one weekend",
+    category: "Sport",
+    date: dayOffset(-40),
+    image: IMG.quad,
+    excerpt: "The 25m pool has never been busier — new records in the 50m free, 100m breaststroke and 4×50 relay.",
+    body: [
+      "At the Kent County Championships, Ashgrove's swimmers broke three long-standing county records, led by Year 11's Dara Kimathi in the 50m freestyle.",
+      "Head of Swimming Coach Mills attributes the season to 'boring fundamentals done beautifully' — and to the 06:30 Tuesday sessions nobody has skipped since October.",
+      "Trials for the development squad run at the start of next half-term; details are on the fixtures page of the portal.",
+    ],
   },
 ];
 
-export const NEWS_CATEGORIES = ["All", "Academics", "Sport", "Arts", "Community", "School life"];
+export type EventTag = "Open Day" | "Sport" | "Arts" | "Academic" | "Community";
 
-/* ----------------------------- events ----------------------------- */
-export interface SchoolEvent {
+export interface EventItem {
   id: string;
   title: string;
   date: Date;
   time: string;
   location: string;
-  type: "Open Day" | "Sport" | "Arts" | "Academic" | "Community";
+  tag: EventTag;
   description: string;
 }
 
-export const EVENTS: SchoolEvent[] = [
-  { id: "e1", title: "Autumn Parents' Evening (Years 7–9)", date: addDays(NOW, 3), time: "16:00 – 19:30", location: "Main School", type: "Community", description: "Bookable 10-minute slots with form tutors and subject teachers. Booking opens on the portal one week prior." },
-  { id: "e2", title: "1st XV v Oakfield — Home fixture", date: addDays(NOW, 4), time: "14:00", location: "Upper Pitch", type: "Sport", description: "County semi-final replay on home turf. Tea tent open from 13:00." },
-  { id: "e3", title: "Year 6 → 7 Taster Day", date: addDays(NOW, 7), time: "09:00 – 15:00", location: "Middle School", type: "Open Day", description: "Offered pupils spend a full day with their new form, including science labs and a games rotation." },
-  { id: "e4", title: "Mock exams begin — Years 11 & 13", date: addDays(NOW, 10), time: "08:45 daily", location: "Great Hall", type: "Academic", description: "Full conditions, full timetables. Candidates arrive 20 minutes early; equipment lists on the portal." },
-  { id: "e5", title: "House Cross-Country Championships", date: addDays(NOW, 13), time: "13:30", location: "Ashgrove Park", type: "Sport", description: "All four houses race across six age groups. Points count toward the House Shield." },
-  { id: "e6", title: "Open Morning — Michaelmas", date: addDays(NOW, 18), time: "09:15 – 12:30", location: "Great Hall", type: "Open Day", description: "Head's address, guided tours, taster lessons and an admissions Q&A. Book via the enquiry form." },
-  { id: "e7", title: "Winter Concert — Chapel Orchestra", date: addDays(NOW, 21), time: "18:30", location: "The Chapel", type: "Arts", description: "Vaughan Williams, Rutter and Holst, performed by the Chapel Orchestra and Senior Chamber Choir." },
-  { id: "e8", title: "Friends of Ashgrove Christmas Fair", date: addDays(NOW, 26), time: "11:00 – 15:00", location: "Founders' Quad", type: "Community", description: "Stalls, carols from the Lower School choir, and the famous mince-pie stand. All proceeds to the bursary fund." },
-  { id: "e9", title: "Sixth Form UCAS Evening", date: addDays(NOW, 30), time: "18:00 – 20:00", location: "Whitaker Lecture Theatre", type: "Academic", description: "Personal statement workshops, Oxbridge and medicine briefings, and a university fair with 40 institutions." },
-  { id: "e10", title: "Junior Nativity — Lower School", date: addDays(NOW, 34), time: "10:30 & 14:00", location: "Great Hall", type: "Arts", description: "Reception to Year 2 perform two shows. Grandparents especially welcome at the morning performance." },
-  { id: "e11", title: "Last day of term — early close", date: addDays(NOW, 41), time: "12:30", location: "Whole school", type: "Community", description: "Chapel service at 09:00 followed by house gatherings. Buses run on the early timetable." },
-  { id: "e12", title: "Spring Term begins", date: addDays(NOW, 55), time: "08:45", location: "Whole school", type: "Academic", description: "Boarders return the evening before. First assembly introduces the Lent term's charity partnership." },
-];
-
-export const EVENT_TYPE_COLORS: Record<SchoolEvent["type"], string> = {
-  "Open Day": "#d9a13b",
-  Sport: "#3f6b4f",
-  Arts: "#a8402f",
-  Academic: "#27517f",
-  Community: "#0c2340",
+export const tagColor: Record<EventTag, string> = {
+  "Open Day": "bg-gold-400 text-navy-950",
+  Sport: "bg-moss-600 text-chalk-50",
+  Arts: "bg-crimson-600 text-chalk-50",
+  Academic: "bg-navy-700 text-chalk-50",
+  Community: "bg-navy-300 text-navy-950",
 };
 
-/* ------------------------------ houses ---------------------------- */
-export interface House {
-  name: string;
-  emblem: string;
-  color: string;
-  softColor: string;
-  motto: string;
-  points: number;
-  head: string;
+export const events: EventItem[] = [
+  { id: "e1", title: "Science Fair & Family Evening", date: dayOffset(-4, 17), time: "17:00 – 19:00", location: "Science Block", tag: "Academic", description: "Two hundred projects across all year groups, from volcano clichés (banned) to the national-final mycelium panels." },
+  { id: "e2", title: "U14 Football: County Semi-final", date: dayOffset(2, 15), time: "15:00 kick-off", location: "Top Pitch", tag: "Sport", description: "Home tie against Maidstone Grammar. Tea urn on the touchline; bring a flag." },
+  { id: "e3", title: "Careers Evening: Engineering & Design", date: dayOffset(6, 18), time: "18:00 – 20:00", location: "Great Hall", tag: "Academic", description: "Twelve alumni engineers, from bridge design to prosthetics. Years 10–13 and parents welcome." },
+  { id: "e4", title: "Chamber Concert: Strings & Winds", date: dayOffset(9, 19), time: "19:30", location: "Music School Barn", tag: "Arts", description: "An intimate evening of chamber music by Years 9–13, ending with the wind octet's Dvořák." },
+  { id: "e5", title: "Parents' Evening — Middle School", date: dayOffset(12, 16), time: "16:00 – 19:30", location: "Classrooms, main building", tag: "Community", description: "Fifteen-minute tutor appointments, bookable through the parent portal from Monday." },
+  { id: "e6", title: "Winter Art Exhibition opening", date: dayOffset(14, 18), time: "18:00 – 21:00", location: "Great Hall & Studios", tag: "Arts", description: "The whole school exhibits: Early Years clay beasts to Sixth Form installation work. Wine and squash provided." },
+  { id: "e7", title: "Spring Open Morning", date: dayOffset(17, 10), time: "10:00 – 12:30", location: "Main gate reception", tag: "Open Day", description: "Tours led by Sixth Formers, taster lessons for the children, coffee and honest questions answered by Dr. Ellison." },
+  { id: "e8", title: "Year 6 Production: The Borrowers", date: dayOffset(20, 18), time: "18:30", location: "Great Hall stage", tag: "Arts", description: "Three performances, one enormous teapot. Tickets £3 via the parent portal, free for Early Years siblings." },
+  { id: "e9", title: "Old Grovians' Reunion Dinner", date: dayOffset(27, 19), time: "19:00 for 19:30", location: "Great Hall", tag: "Community", description: "Class of 1976–2016 reunite under the Willis organ. Black tie optional, stories mandatory." },
+  { id: "e10", title: "Mock Exams begin — Years 11 & 13", date: dayOffset(33, 9), time: "08:50 sharp", location: "Examination Hall", tag: "Academic", description: "Full examination conditions. Timetables posted on the student portal two weeks prior." },
+  { id: "e11", title: "Community Planting Day", date: dayOffset(3, 10), time: "10:00 – 13:00", location: "Walled Garden & Copse", tag: "Community", description: "Two hundred native saplings, gloves provided, soup at one. Families and neighbours welcome." },
+];
+
+/* ---------- gallery ---------- */
+
+export type GalleryCat = "Campus" | "Learning" | "Arts" | "Sport" | "Community";
+
+export interface GalleryImage {
+  src: string;
+  alt: string;
+  cat: GalleryCat;
+  aspect: string;
 }
 
-export const HOUSES: House[] = [
-  { name: "Ravensworth", emblem: "The Raven", color: "#0c2340", softColor: "#d9e3ee", motto: "Wing and word", points: 1240, head: "Mrs H. Doyle" },
-  { name: "Hartley", emblem: "The Hart", color: "#3f6b4f", softColor: "#dce8de", motto: "Steady of heart", points: 1185, head: "Mr J. Okafor" },
-  { name: "Beaumont", emblem: "The Beacon", color: "#b98426", softColor: "#f3e6c8", motto: "Shine onward", points: 1102, head: "Ms P. Adeyemi" },
-  { name: "Kingsley", emblem: "The Key", color: "#a8402f", softColor: "#efdcd6", motto: "Open every door", points: 1064, head: "Mr S. Lindqvist" },
+export const galleryImages: GalleryImage[] = [
+  { src: IMG.quad, alt: "The main quad at golden hour", cat: "Campus", aspect: "aspect-[4/3]" },
+  { src: IMG.classroom, alt: "Seminar discussion in Room 12", cat: "Learning", aspect: "aspect-[4/5]" },
+  { src: IMG.sports, alt: "U14 footballers at dusk", cat: "Sport", aspect: "aspect-[4/3]" },
+  { src: IMG.library, alt: "The Ellison Library reading room", cat: "Learning", aspect: "aspect-[4/3]" },
+  { src: IMG.art, alt: "Year 10 in the north studios", cat: "Arts", aspect: "aspect-[4/5]" },
+  { src: IMG.hall, alt: "Spring Concert in the Great Hall", cat: "Community", aspect: "aspect-[4/3]" },
+  { src: IMG.lab, alt: "Mycelium trials in the climate chamber", cat: "Learning", aspect: "aspect-[4/3]" },
+  { src: IMG.aerial, alt: "The campus from above in autumn", cat: "Campus", aspect: "aspect-[16/10]" },
 ];
 
-/* ----------------------------- academics -------------------------- */
-export interface Stage {
-  id: string;
-  name: string;
-  ages: string;
-  years: string;
-  image: string;
-  summary: string;
-  highlights: string[];
-  subjects: string[];
-}
+/* ---------- admissions ---------- */
 
-export const STAGES: Stage[] = [
-  {
-    id: "lower", name: "Lower School", ages: "Ages 4–11", years: "Reception – Year 6", image: IMAGES.classroom,
-    summary: "A warm, structured start where reading, number and curiosity are taught with intent. Classes of 18, specialist teaching from Year 3, and afternoons given to art, music, forest school and sport.",
-    highlights: ["Phonics-led reading with daily one-to-one listening", "Mathematics mastery with concrete–pictorial–abstract progression", "Forest school every Friday for Reception–Year 2", "Instrumental programme: every child learns an instrument by Year 3"],
-    subjects: ["English", "Mathematics", "Science", "History", "Geography", "French", "Art", "Music", "Drama", "Computing", "PE & Games", "PSHE"],
-  },
-  {
-    id: "middle", name: "Middle School", ages: "Ages 11–16", years: "Years 7 – 11", image: IMAGES.science,
-    summary: "A broad curriculum narrows gracefully toward GCSE. Twelve laboratory sciences hours a fortnight, a two-week design & technology rotation, and the Ashgrove Diploma — our own programme of public speaking, service and fieldcraft.",
-    highlights: ["Triple science option from Year 9", "Ashgrove Diploma: oracy, service, expedition", "Dedicated study skills programme in Years 7–8", "1:1 reading and maths tutoring for every pupil"],
-    subjects: ["English", "Mathematics", "Biology", "Chemistry", "Physics", "History", "Geography", "French", "Spanish", "Latin", "Art", "Music", "Drama", "Design & Technology", "Computing", "PE", "PSHE"],
-  },
-  {
-    id: "sixth", name: "Sixth Form", ages: "Ages 16–18", years: "Years 12 – 13", image: IMAGES.library,
-    summary: "A-levels taught in classes of ten, an Extended Project for every student, and a partnership timetable with two neighbouring schools that extends choice to 28 subjects. Leavers go on to Russell Group universities, conservatoires and apprenticeships alike.",
-    highlights: ["28 A-level subjects via the Ash Vale partnership", "EPQ supervision from university-linked mentors", "Weekly Oxbridge, medicine and law clinics", "Sixth Form centre with silent library until 18:00"],
-    subjects: ["Mathematics", "Further Maths", "Physics", "Chemistry", "Biology", "Economics", "History", "Politics", "English Literature", "French", "Spanish", "Latin", "Classics", "Art", "Music", "Drama", "Computer Science", "Philosophy & Ethics", "Psychology", "Geography"],
-  },
+export const admissionsSteps = [
+  { step: "01", title: "Enquire & visit", text: "Send an enquiry or book an Open Morning. Seeing the Grove on a normal Tuesday tells you more than any brochure." },
+  { step: "02", title: "Register", text: "Complete the online registration form (£75, refunded for bursary applicants) at least one term before the entrance assessment." },
+  { step: "03", title: "Taster & assessment", text: "Your child joins a taster morning with their year group. Assessments are age-appropriate: for Reception, play-based observation." },
+  { step: "04", title: "Family meeting", text: "We meet the whole family. We ask about hopes and habits; you ask us anything — including the awkward things." },
+  { step: "05", title: "Offer", text: "Offers are posted within ten working days. Means-tested bursaries of up to 100% are assessed in parallel." },
+  { step: "06", title: "Join the Grove", text: "Induction week in July: uniforms, locker, buddy, and a tutor who already knows your child's name." },
 ];
 
-export const EXAM_STATS = [
-  { value: 78, suffix: "%", label: "GCSE grades 9–7" },
-  { value: 61, suffix: "%", label: "A-level grades A*–A" },
-  { value: 42, suffix: "", label: "Oxbridge offers, last 5 years" },
-  { value: 100, suffix: "%", label: "First-choice university places" },
+export const keyDates = [
+  { when: "Rolling", what: "Open Mornings & private tours", detail: "Most Tuesday and Thursday mornings, term time" },
+  { when: fmtShort(dayOffset(17, 10)), what: "Spring Open Morning", detail: "Booking now open — places limited to 40 families" },
+  { when: "January", what: "11+ and 13+ entrance assessments", detail: "English, maths, reasoning; taster morning same week" },
+  { when: "March", what: "Scholarship exhibitions", detail: "Music, art, sport, academic — audition by portfolio" },
+  { when: "May", what: "Sixth Form applications close", detail: "GCSE results and interview required by July" },
 ];
 
-/* ----------------------------- leadership ------------------------- */
-export interface Leader {
-  name: string;
-  role: string;
-  initials: string;
-  color: string;
-  note: string;
-}
-
-export const LEADERSHIP: Leader[] = [
-  { name: "Dr Eleanor Ashworth", role: "Headmistress", initials: "EA", color: "#0c2340", note: "Head since 2018. Former Deputy Head at Cranleigh, historian by training, teaches one Sixth Form seminar a week." },
-  { name: "Mr James Okafor", role: "Deputy Head, Academic", initials: "JO", color: "#3f6b4f", note: "Leads curriculum, assessment and the Ashgrove Diploma. Chemistry teacher of fifteen years." },
-  { name: "Mrs Harriet Doyle", role: "Deputy Head, Pupils", initials: "HD", color: "#a8402f", note: "Oversees pastoral care, boarding and safeguarding. Runs the lunchtime chess club, badly." },
-  { name: "Ms Priya Adeyemi", role: "Head of Art & Design", initials: "PA", color: "#b98426", note: "Curator of the school collection and lead of the corridor mural programme." },
-  { name: "Mr Sven Lindqvist", role: "Director of Music", initials: "SL", color: "#27517f", note: "Conducts the Chapel Orchestra; founded the county-wide schools' singing partnership." },
-  { name: "Miss Ruth Fenwick", role: "Head of Lower School", initials: "RF", color: "#3f6b4f", note: "Twenty-two years in prep schools. Believes every child should leave Year 6 loving a book." },
+export const feeRows = [
+  { division: "Early Years (Reception)", perTerm: "£4,980", perYear: "£14,940", notes: "Includes forest school & lunch club" },
+  { division: "Lower School (Years 1–6)", perTerm: "£5,860", perYear: "£17,580", notes: "Includes swimming & instrumental taster" },
+  { division: "Middle School (Years 7–11)", perTerm: "£6,740", perYear: "£20,220", notes: "Includes laptop scheme & Duke of Edinburgh" },
+  { division: "Sixth Form (Years 12–13)", perTerm: "£7,150", perYear: "£21,450", notes: "Includes university guidance & EPQ" },
 ];
 
-export const VALUES = [
-  { icon: "book", title: "Curiosity first", text: "Lessons begin with questions, not answers. We teach children how to think, and then trust them to." },
-  { icon: "shield", title: "Character in action", text: "Service, sport and expedition carry the same weight as examinations in the Ashgrove Diploma." },
-  { icon: "leaf", title: "Rooted & open", text: "Proud of 112 years of tradition, and unafraid to change what no longer serves our pupils." },
-  { icon: "star", title: "Every child known", text: "Tutor groups of twelve, an open-door pastoral team, and no child invisible in the corridor." },
+export const faqs = [
+  { q: "At what ages can pupils join?", a: "Main entry points are 4+ (Reception), 7+, 11+ and 13+ (Year 7 or 9), and 16+ (Sixth Form). We consider in-year applications where places exist — around a third of our pupils join at non-standard points." },
+  { q: "Do you offer bursaries and scholarships?", a: "Yes. Means-tested bursaries cover up to 100% of fees and are assessed in parallel with the offer, so cost never needs to decide a child's future. Scholarships (10–25%) are awarded in music, art, sport and academics each March." },
+  { q: "Is there boarding?", a: "No — Ashgrove is a deliberately day school. We run seven supervised bus routes across Kent, a breakfast club from 07:30, and prep-and-clubs until 16:30 (17:30 for Sixth Form)." },
+  { q: "What is the class size?", a: "A maximum of 22, with an average of 17. Early Years run at 1:8 with a teacher and two assistants in every room." },
+  { q: "How do you support SEND pupils?", a: "Our Learning Support team of six specialists runs in-class support, 1:1 programmes and exam-access arrangements. Around 9% of pupils have an education, health and care plan or equivalent." },
+  { q: "What are the school hours?", a: "Gates open 08:00, registration 08:30, last lesson ends 15:20. Clubs and supervised prep run to 16:30, and the Sixth Form common room stays open to 17:30." },
 ];
 
-export const TIMELINE = [
-  { year: "1912", title: "Founded on the hill", text: "Canon Edmund Ashgrove opens the school with 31 boys and a bell cast in Bristol — still rung on the first day of term." },
-  { year: "1938", title: "The Chapel is consecrated", text: "Built by pupils and parents over six summers; the oak roof timbers came from the original estate." },
-  { year: "1962", title: "Girls admitted throughout", text: "Ashgrove becomes fully co-educational, among the first independent day schools in the county to do so." },
-  { year: "1987", title: "The Whitaker Science Wing", text: "Eight laboratories and the county's first school planetarium, funded by the Old Ashgrovean fund." },
-  { year: "2004", title: "Lower School opens", text: "Education begins at four with the opening of the nursery and prep building in Founders' Quad." },
-  { year: "2019", title: "The Ashgrove Diploma", text: "Our co-curricular certificate — oracy, service and expedition — is launched for Years 7–13." },
-  { year: "2024", title: "Bursary fund doubled", text: "The Friends of Ashgrove campaign reaches its £2m target, funding 40 means-tested places each year." },
-];
+/* ---------- downloadable resources ---------- */
 
-/* ---------------------------- admissions -------------------------- */
-export const ADMISSION_STEPS = [
-  { step: 1, title: "Enquire", text: "Send an enquiry form or call the registrar. We reply within two working days with a prospectus and key dates for your child's entry year.", meta: "Any time" },
-  { step: 2, title: "Visit", text: "Attend an Open Morning or book a private tour. Pupils lead the tours — ask them anything the adults won't answer.", meta: "Termly Open Mornings" },
-  { step: 3, title: "Register", text: "Complete registration and pay the £100 registration fee (waived for bursary applicants). Closing dates are listed below.", meta: "By January for September entry" },
-  { step: 4, title: "Assessment", text: "Age-appropriate assessments: readiness mornings for 4+, papers in English, maths and reasoning for 11+, subject tests and an interview for 16+.", meta: "November – January" },
-  { step: 5, title: "Taster day", text: "Every offered pupil spends a full day in their new form before accepting. We want you to choose us with your eyes open.", meta: "Spring term" },
-  { step: 6, title: "Join us", text: "Offers are made in February. Welcome evenings run in June and July, and the bell rings for your child on the first morning of September.", meta: "September" },
-];
-
-export const KEY_DATES = [
-  { item: "Registration closes — 4+ & 11+ entry", date: fmtDate(addDays(NOW, 60)) },
-  { item: "11+ assessment morning", date: fmtDate(addDays(NOW, 75)) },
-  { item: "16+ subject tests & interviews", date: fmtDate(addDays(NOW, 82)) },
-  { item: "Offers posted", date: fmtDate(addDays(NOW, 105)) },
-  { item: "Taster days", date: fmtDate(addDays(NOW, 130)) },
-  { item: "Welcome evenings", date: fmtDate(addDays(NOW, 210)) },
-  { item: "First day of the new academic year", date: fmtDate(addDays(NOW, 248)) },
-];
-
-export const FEES = [
-  { stage: "Lower School (Reception – Year 6)", perTerm: "£4,380", perYear: "£13,140", note: "Includes lunches, clubs and music group lessons" },
-  { stage: "Middle School (Years 7 – 11)", perTerm: "£5,640", perYear: "£16,920", note: "Includes examination fees and the Ashgrove Diploma" },
-  { stage: "Sixth Form (Years 12 – 13)", perTerm: "£5,980", perYear: "£17,940", note: "Includes UCAS support and partnership timetabling" },
-];
-
-export const FAQS = [
-  { q: "At what ages can children join?", a: "Main entry points are 4+ (Reception), 11+ (Year 7) and 16+ (Sixth Form). We occasionally have places in other year groups — the registrar keeps a live vacancy list and is happy to advise." },
-  { q: "Is Ashgrove selective?", a: "We assess for suitability, not perfection. We look for curiosity and kindness as much as academic readiness, and we teach to each child's ceiling once they arrive." },
-  { q: "What financial support is available?", a: "Means-tested bursaries cover up to 100% of fees, and the doubled bursary fund supports around 40 pupils each year. Academic, music and sport scholarships of up to 20% are assessed at 11+ and 16+." },
-  { q: "What are the school hours?", a: "The day runs 08:45–16:00, with supervised prep clubs until 18:00 for Middle School and Sixth Form. Breakfast club opens at 07:30 for all year groups." },
-  { q: "Is there boarding?", a: "Ashgrove is a day school with optional weekly boarding for Years 7–13 in two houses on campus. Around a fifth of pupils board one or more nights a week." },
-  { q: "How do pupils travel to school?", a: "Five supervised bus routes cover the city and the Vale, and there is a walking-bus from the station for Sixth Formers. Cycling is encouraged — the bike shed has 240 spaces." },
-];
-
-/* ----------------------------- resources -------------------------- */
 export interface Resource {
   id: string;
-  title: string;
-  kind: string;
+  name: string;
+  file: string;
   size: string;
-  audience: "Parents" | "Pupils" | "Applicants" | "All";
-  filename: string;
-  content: string;
+  desc: string;
+  lines: string[];
 }
 
-export const RESOURCES: Resource[] = [
-  { id: "r1", title: "School Prospectus 2026", kind: "Prospectus", size: "24 pp", audience: "Applicants", filename: "ashgrove-prospectus-2026.txt", content: "ASHGROVE ACADEMY — PROSPECTUS 2026\n=====================================\nEst. 1912 · Independent day school for ages 4–18\n\nHeadmistress: Dr Eleanor Ashworth\n1,140 pupils · 86 teaching staff · average class 18\n\nThree stages: Lower School (R–Y6), Middle School (Y7–Y11), Sixth Form (Y12–Y13).\nGCSE 9–7: 78% · A-level A*–A: 61% · 42 Oxbridge offers in five years.\n\nVisit us: book an Open Morning at ashgrove.example/contact." },
-  { id: "r2", title: "Term Calendar 2025–26", kind: "Calendar", size: "1 pp", audience: "Parents", filename: "term-calendar-2025-26.txt", content: "ASHGROVE ACADEMY — TERM CALENDAR 2025–26\n\nMichaelmas: Sep – mid Dec\nLent: mid Jan – late Mar\nTrinity: mid Apr – early Jul\n\nHalf terms: Oct 24–31 · Feb 13–20 · May 29 – Jun 5\nINSET days: 5 across the year (listed on portal)." },
-  { id: "r3", title: "Uniform & Kit List", kind: "Guide", size: "3 pp", audience: "Parents", filename: "uniform-kit-list.txt", content: "UNIFORM & KIT LIST\n\nSummer: grey trousers/skirt, white shirt, house tie, navy jumper, navy blazer (winter).\nGames kit: navy-gold house shirt, navy shorts, house socks.\nSixth Form: business dress, house pin badge.\n\nNamed items only. Uniform shop open Thu 15:30–17:30 term time." },
-  { id: "r4", title: "Bus Routes & Timetable", kind: "Timetable", size: "2 pp", audience: "All", filename: "bus-routes.txt", content: "BUS ROUTES — 5 SUPERVISED SERVICES\n\nRoute 1 · City Loop 07:40 → school 08:30\nRoute 2 · The Vale 07:25 → school 08:28\nRoute 3 · Northgate 07:35 → school 08:25\nRoute 4 · Harbour Line 07:20 → school 08:32\nRoute 5 · Station Shuttle (Sixth Form) 08:05 → school 08:22\n\nReturn departures 16:15 and 18:05." },
-  { id: "r5", title: "Bursary & Scholarship Guide", kind: "Guide", size: "6 pp", audience: "Applicants", filename: "bursary-guide.txt", content: "BURSARIES & SCHOLARSHIPS\n\nMeans-tested bursaries up to 100% of fees; around 40 awards each year.\nScholarships (academic, music, sport) up to 20% at 11+ and 16+.\n\nApplications assessed in confidence by the Bursary Committee. Registration fee waived for bursary applicants." },
-  { id: "r6", title: "Mock Exam Timetable — Years 11 & 13", kind: "Timetable", size: "2 pp", audience: "Pupils", filename: "mock-timetable.txt", content: "MOCK EXAMINATIONS — YEARS 11 & 13\n\nPapers sit in the Great Hall, 08:45 start. Arrive 20 minutes early.\nBring: black pens, pencils, ruler, calculator (approved list only).\nFull subject timetable posted per candidate on the portal." },
-  { id: "r7", title: "Safeguarding & Pastoral Handbook", kind: "Handbook", size: "12 pp", audience: "All", filename: "safeguarding-handbook.txt", content: "SAFEGUARDING & PASTORAL CARE\n\nDesignated Safeguarding Lead: Mrs H. Doyle (Deputy Head, Pupils)\nDeputy DSL: Mr J. Okafor\n\nEvery tutor group has 12 pupils and meets daily. Concerns: safeguarding@ashgrove.example or 01761 555 019." },
-  { id: "r8", title: "Acceptable Use — Devices & IT", kind: "Policy", size: "4 pp", audience: "Pupils", filename: "it-acceptable-use.txt", content: "ACCEPTABLE USE POLICY\n\nSchool devices for learning; personal phones stored in lockers Y7–Y11, permitted in the Sixth Form centre.\nFiltering and monitoring in line with statutory guidance. Passwords reset via the portal." },
+const header = (title: string) => [
+  "ASHGROVE ACADEMY — EST. 1912",
+  "14 Ashgrove Lane, Hartfield, Kent TN8 7QR",
+  `${SCHOOL.phone} · ${SCHOOL.email}`,
+  "".padEnd(56, "="),
+  title.toUpperCase(),
+  "".padEnd(56, "-"),
+  "",
 ];
 
-export function downloadResource(r: Resource) {
-  const blob = new Blob([r.content], { type: "text/plain;charset=utf-8" });
+export const resources: Resource[] = [
+  {
+    id: "prospectus",
+    name: "School Prospectus 2026",
+    file: "ashgrove-prospectus-2026.txt",
+    size: "2 pages",
+    desc: "Everything on one honest page: ethos, academics, fees, day structure and how to visit.",
+    lines: [
+      ...header("School Prospectus 2026"),
+      "OUR MOTTO — Radices et Alae, 'Roots and Wings'.",
+      "",
+      "Ashgrove Academy is an independent day school for ages 4–18 on a",
+      "32-acre campus in Hartfield, Kent. Founded in 1912 by Edith Ashworth",
+      "with fourteen pupils and one donkey, the school now educates 1,180",
+      "pupils across Early Years, Lower School, Middle School and Sixth Form.",
+      "",
+      "THE DAY — Gates 08:00 · Registration 08:30 · Lessons to 15:20 ·",
+      "Clubs & supervised prep to 16:30. Seven bus routes across Kent.",
+      "",
+      "ACADEMICS — Average class of 17 · 28 GCSE options · 26 A-levels ·",
+      "96% of leavers take up first-choice university places.",
+      "",
+      "FEES 2025–26 — Early Years £4,980/term · Lower £5,860/term ·",
+      "Middle £6,740/term · Sixth Form £7,150/term. Bursaries to 100%.",
+      "",
+      "VISIT — Open Mornings most Tuesdays and Thursdays, term time.",
+      "Book via admissions@ashgrove-academy.sch.uk or +44 (0)1892 654 210.",
+    ],
+  },
+  {
+    id: "application-form",
+    name: "Registration Form 2026",
+    file: "ashgrove-registration-2026.txt",
+    size: "3 pages",
+    desc: "The printable registration form for all entry points, with notes on required documents.",
+    lines: [
+      ...header("Registration Form — 2026 Entry"),
+      "SECTION 1 — PUPIL DETAILS",
+      "Full name: ____________________________________________",
+      "Date of birth: ____________  Current school: ____________",
+      "Entry point applied for:  [ ] 4+  [ ] 7+  [ ] 11+  [ ] 13+  [ ] 16+",
+      "Term of entry: ____________",
+      "",
+      "SECTION 2 — FAMILY DETAILS",
+      "Parent/guardian 1: __________________  Phone: ____________",
+      "Parent/guardian 2: __________________  Phone: ____________",
+      "Email for correspondence: ________________________________",
+      "",
+      "SECTION 3 — DECLARATION",
+      "I confirm the information given is accurate and consent to Ashgrove",
+      "Academy processing it for admissions purposes.",
+      "Signed: ______________________  Date: ____________",
+      "",
+      "Enclose: birth certificate copy, latest school report, £75 fee",
+      "(refunded for bursary applicants). Return to the Registrar.",
+    ],
+  },
+  {
+    id: "term-calendar",
+    name: "Term Dates 2025–26",
+    file: "ashgrove-term-dates.txt",
+    size: "1 page",
+    desc: "Full calendar of terms, half-terms, inset days and holiday clubs.",
+    lines: [
+      ...header("Term Dates — Academic Year 2025–26"),
+      "AUTUMN TERM   — Wed 3 Sep → Fri 12 Dec",
+      "  Half-term: Mon 20 Oct → Fri 24 Oct",
+      "  Holiday club runs both half-term weeks (08:00–17:00).",
+      "",
+      "SPRING TERM   — Mon 5 Jan → Fri 27 Mar",
+      "  Half-term: Mon 16 Feb → Fri 20 Feb",
+      "  INSET days: Mon 5 Jan, Fri 27 Mar",
+      "",
+      "SUMMER TERM   — Mon 13 Apr → Tue 7 Jul",
+      "  Half-term: Mon 25 May → Fri 29 May",
+      "  Sports Day: Fri 19 Jun · Prize Giving: Sat 4 Jul",
+      "",
+      "Examinations: mock window begins " + fmtShort(dayOffset(33, 9)) + ".",
+    ],
+  },
+  {
+    id: "bus-routes",
+    name: "Bus Routes & Times",
+    file: "ashgrove-bus-routes.txt",
+    size: "2 pages",
+    desc: "All seven supervised routes with pickup points, times and chaperone names.",
+    lines: [
+      ...header("Bus Routes & Times — from Monday"),
+      "ROUTE 1 · Tunbridge Wells   07:35 → school 08:15   Mrs. Doyle",
+      "ROUTE 2 · Tonbridge          07:40 → school 08:18   Mr. Pratt",
+      "ROUTE 3 · Sevenoaks          07:30 → school 08:12   Mrs. Doyle",
+      "ROUTE 4 · Edenbridge         07:45 → school 08:20   Ms. Kaur",
+      "ROUTE 5 · Oxted              07:50 → school 08:22   Mr. Pratt",
+      "ROUTE 6 · Crowborough        07:38 → school 08:16   Ms. Kaur",
+      "ROUTE 7 · Hartfield loop     08:00 → school 08:24   Mr. Ives",
+      "",
+      "Return journeys depart 16:35 (17:40 Sixth Form express).",
+      "All routes are supervised by staff; seatbelts checked daily.",
+      "Queries: transport@ashgrove-academy.sch.uk",
+    ],
+  },
+  {
+    id: "uniform-list",
+    name: "Uniform List",
+    file: "ashgrove-uniform-list.txt",
+    size: "1 page",
+    desc: "Complete uniform and kit list by division, with suppliers and second-hand swap details.",
+    lines: [
+      ...header("Uniform List — All Divisions"),
+      "EVERYONE — Navy blazer with gold ash-leaf crest · white shirt ·",
+      "school tie (stripe by house) · grey trousers/skirt · navy V-neck ·",
+      "black shoes (no trainers) · named PE kit in Ashgrove navy & gold.",
+      "",
+      "EARLY YEARS — Elastic-waist trousers, wellies for forest school,",
+      "spare clothes in named bag. No ties until Year 1.",
+      "",
+      "SIXTH FORM — Business dress in navy, grey and white; blazer optional.",
+      "",
+      "Suppliers: Trunk & Twine, Hartfield High St · The Kit Room, Tonbridge.",
+      "Second-hand swap rail open every Friday 15:30, Parents' Hut.",
+    ],
+  },
+  {
+    id: "lunch-menu",
+    name: "Lunch Menu — This Week",
+    file: "ashgrove-lunch-menu.txt",
+    size: "1 page",
+    desc: "Mrs. Hale's kitchen: two hot options, salad bar and a vegetarian line daily.",
+    lines: [
+      ...header("Lunch Menu — This Week · Kitchen of Mrs. Hale"),
+      "MONDAY    — Roast chicken, rosemary potatoes; veg: bean chilli",
+      "TUESDAY   — Fish pie, buttered peas; veg: mushroom stroganoff",
+      "WEDNESDAY — Sausage & mash, onion gravy; veg: halloumi traybake",
+      "THURSDAY  — Thai green curry; veg: the same, minus the chicken",
+      "FRIDAY    — Homemade fish fingers & chips; veg: sweetcorn fritters",
+      "",
+      "Every day: salad bar, fruit, yogurt, and whatever the walled garden",
+      "sent up this morning. Allergies flagged on pupil lanyards.",
+      "Pudding is non-negotiable and usually custard-adjacent.",
+    ],
+  },
+];
+
+export function downloadResource(id: string) {
+  const r = resources.find((x) => x.id === id);
+  if (!r) return;
+  const blob = new Blob([r.lines.join("\n")], { type: "text/plain;charset=utf-8" });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = r.filename;
+  a.download = r.file;
   document.body.appendChild(a);
   a.click();
   a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 4000);
+  setTimeout(() => URL.revokeObjectURL(url), 1500);
 }
 
-/* ------------------------------ gallery --------------------------- */
-export interface GalleryItem {
+/* ---------- student portal ---------- */
+
+export const portalTimetable = [
+  { day: "Monday", lessons: [
+    { time: "08:50", subject: "English Literature", room: "R12", teacher: "Mr. Whitfield" },
+    { time: "10:10", subject: "Mathematics", room: "M4", teacher: "Mrs. Sato" },
+    { time: "11:15", subject: "Biology", room: "S2", teacher: "Dr. Fenwick" },
+    { time: "13:15", subject: "French", room: "L1", teacher: "Mme. Aubert" },
+    { time: "14:20", subject: "Design & Tech", room: "DT Wing", teacher: "Mr. Okonkwo" },
+  ]},
+  { day: "Tuesday", lessons: [
+    { time: "08:50", subject: "Mathematics", room: "M4", teacher: "Mrs. Sato" },
+    { time: "10:10", subject: "Chemistry", room: "S5", teacher: "Mr. Hale" },
+    { time: "11:15", subject: "English Language", room: "R12", teacher: "Mr. Whitfield" },
+    { time: "13:15", subject: "History", room: "H2", teacher: "Dr. Ellison" },
+    { time: "14:20", subject: "PE — Swimming", room: "Pool", teacher: "Coach Mills" },
+  ]},
+  { day: "Wednesday", lessons: [
+    { time: "08:50", subject: "Physics", room: "S1", teacher: "Mr. Brandt" },
+    { time: "10:10", subject: "English Literature", room: "R12", teacher: "Mr. Whitfield" },
+    { time: "11:15", subject: "French", room: "L1", teacher: "Mme. Aubert" },
+    { time: "13:15", subject: "Mathematics", room: "M4", teacher: "Mrs. Sato" },
+    { time: "14:20", subject: "Music", room: "Barn 3", teacher: "Mrs. Adeyemi" },
+  ]},
+  { day: "Thursday", lessons: [
+    { time: "08:50", subject: "Biology", room: "S2", teacher: "Dr. Fenwick" },
+    { time: "10:10", subject: "Geography", room: "H3", teacher: "Ms. Kaur" },
+    { time: "11:15", subject: "Mathematics", room: "M4", teacher: "Mrs. Sato" },
+    { time: "13:15", subject: "Drama", room: "Hall stage", teacher: "Mr. Reyes" },
+    { time: "14:20", subject: "Chemistry", room: "S5", teacher: "Mr. Hale" },
+  ]},
+  { day: "Friday", lessons: [
+    { time: "08:50", subject: "English Language", room: "R12", teacher: "Mr. Whitfield" },
+    { time: "10:10", subject: "Physics", room: "S1", teacher: "Mr. Brandt" },
+    { time: "11:15", subject: "Art", room: "Studio 2", teacher: "Ms. Bloom" },
+    { time: "13:15", subject: "RE & Philosophy", room: "H1", teacher: "Mr. Ives" },
+    { time: "14:20", subject: "Games — Football", room: "Top Pitch", teacher: "Mr. Ferreira" },
+  ]},
+];
+
+export interface Assignment {
   id: string;
-  src: string;
-  caption: string;
-  category: string;
-  tall?: boolean;
-}
-
-export const GALLERY: GalleryItem[] = [
-  { id: "g1", src: IMAGES.hero, caption: "Main House at first bell, Michaelmas term", category: "Campus", tall: true },
-  { id: "g2", src: IMAGES.classroom, caption: "Year 2 morning register, Lower School", category: "Classroom" },
-  { id: "g3", src: IMAGES.science, caption: "Year 10 titration practical, Whitaker Wing", category: "Classroom" },
-  { id: "g4", src: IMAGES.library, caption: "The Old Library reading room", category: "Campus", tall: true },
-  { id: "g5", src: IMAGES.sports, caption: "1st XV v Oakfield, Upper Pitch", category: "Sport" },
-  { id: "g6", src: IMAGES.arts, caption: "Year 10 life-painting, North Studio", category: "Arts" },
-  { id: "g7", src: IMAGES.music, caption: "Chapel Orchestra, autumn rehearsal", category: "Arts", tall: true },
-  { id: "g8", src: IMAGES.classroom, caption: "Story circle, Reception", category: "Classroom" },
-  { id: "g9", src: IMAGES.sports, caption: "House cross-country, Ashgrove Park", category: "Sport" },
-  { id: "g10", src: IMAGES.hero, caption: "Founders' Quad before the Fair", category: "Campus" },
-  { id: "g11", src: IMAGES.arts, caption: "Corridor mural, final week", category: "Arts" },
-  { id: "g12", src: IMAGES.music, caption: "Senior Chamber Choir, Winter Concert", category: "Arts" },
-];
-
-export const GALLERY_CATEGORIES = ["All", "Campus", "Classroom", "Sport", "Arts"];
-
-/* ------------------------------ portal ---------------------------- */
-export const TIMETABLE: Record<string, { time: string; lesson: string; room: string }[]> = {
-  Monday: [
-    { time: "08:45", lesson: "English Literature", room: "M4" },
-    { time: "09:45", lesson: "Mathematics", room: "W2" },
-    { time: "11:05", lesson: "Chemistry", room: "W-Lab3" },
-    { time: "12:05", lesson: "Lunch · House time", room: "Kingsley" },
-    { time: "13:15", lesson: "History", room: "M9" },
-    { time: "14:15", lesson: "Games — Rugby", room: "Upper Pitch" },
-  ],
-  Tuesday: [
-    { time: "08:45", lesson: "Physics", room: "W-Lab1" },
-    { time: "09:45", lesson: "English Language", room: "M4" },
-    { time: "11:05", lesson: "Mathematics", room: "W2" },
-    { time: "12:05", lesson: "Lunch · Library prep", room: "Old Library" },
-    { time: "13:15", lesson: "French", room: "L2" },
-    { time: "14:15", lesson: "Art — Studio", room: "N-Studio" },
-  ],
-  Wednesday: [
-    { time: "08:45", lesson: "Biology", room: "W-Lab2" },
-    { time: "09:45", lesson: "History", room: "M9" },
-    { time: "11:05", lesson: "English Literature", room: "M4" },
-    { time: "12:05", lesson: "Lunch · Chapel choir", room: "The Chapel" },
-    { time: "13:15", lesson: "Mathematics", room: "W2" },
-    { time: "14:15", lesson: "Games — Hockey", room: "Astro" },
-  ],
-  Thursday: [
-    { time: "08:45", lesson: "Mathematics", room: "W2" },
-    { time: "09:45", lesson: "Chemistry", room: "W-Lab3" },
-    { time: "11:05", lesson: "French", room: "L2" },
-    { time: "12:05", lesson: "Lunch · Society talk", room: "Whitaker LT" },
-    { time: "13:15", lesson: "English Language", room: "M4" },
-    { time: "14:15", lesson: "Physics", room: "W-Lab1" },
-  ],
-  Friday: [
-    { time: "08:45", lesson: "English Literature", room: "M4" },
-    { time: "09:45", lesson: "Biology", room: "W-Lab2" },
-    { time: "11:05", lesson: "History", room: "M9" },
-    { time: "12:05", lesson: "Lunch · House gathering", room: "Kingsley" },
-    { time: "13:15", lesson: "Art — Studio", room: "N-Studio" },
-    { time: "14:15", lesson: "Games — Fixture PM", room: "Varies" },
-  ],
-};
-
-export const ASSIGNMENTS = [
-  { id: "as1", subject: "Chemistry", title: "Redox equations worksheet", due: addDays(NOW, 2), status: "pending" },
-  { id: "as2", subject: "English Literature", title: "Essay: jealousy in Othello (1,200 words)", due: addDays(NOW, 5), status: "pending" },
-  { id: "as3", subject: "Mathematics", title: "Differentiation problem set 4B", due: addDays(NOW, 1), status: "overdue" },
-  { id: "as4", subject: "History", title: "Source analysis — Weimar economy", due: addDays(NOW, 8), status: "pending" },
-  { id: "as5", subject: "French", title: "Oral prep: ma ville (3 min)", due: addDays(NOW, -2), status: "done" },
-  { id: "as6", subject: "Physics", title: "Lab report — standing waves", due: addDays(NOW, -4), status: "done" },
-];
-
-export const GRADES = [
-  { subject: "Mathematics", grade: "A", effort: 1, teacher: "Mrs Vale" },
-  { subject: "English Literature", grade: "A", effort: 2, teacher: "Mr Hedges" },
-  { subject: "Chemistry", grade: "A*", effort: 1, teacher: "Mr Okafor" },
-  { subject: "Biology", grade: "B", effort: 2, teacher: "Dr Singh" },
-  { subject: "Physics", grade: "A", effort: 1, teacher: "Mrs Kaur" },
-  { subject: "History", grade: "B", effort: 3, teacher: "Mr Boateng" },
-  { subject: "French", grade: "A", effort: 2, teacher: "Mme Rousseau" },
-];
-
-export const PORTAL_MESSAGES = [
-  { from: "Mr Okafor", text: "Mock candidates: collect your statement of entry from my room by Friday.", when: "Today, 09:12" },
-  { from: "Games Office", text: "Friday fixture list updated — 1st XV travel, 2nd XV at home vs St Brendan's.", when: "Yesterday" },
-  { from: "Music Office", text: "Winter Concert call time is 17:45 for all orchestral players. Concert blacks.", when: "2 days ago" },
-];
-
-/* ------------------------------ stats ----------------------------- */
-export const SCHOOL_STATS = [
-  { value: 1140, suffix: "", label: "Pupils, ages 4–18" },
-  { value: 18, suffix: ":1 avg", label: "Class size" },
-  { value: 96, suffix: "%", label: "Pupils in music or drama" },
-  { value: 112, suffix: "yrs", label: "On the hill since 1912" },
-];
-
-/* --------------------------- search index ------------------------- */
-export interface SearchEntry {
+  subject: string;
   title: string;
-  detail: string;
-  type: "Page" | "News" | "Event" | "Programme" | "Resource";
-  path: string;
+  due: Date;
 }
 
-export const SEARCH_INDEX: SearchEntry[] = [
-  { title: "Home", detail: "Notices, houses, news and life at Ashgrove", type: "Page", path: "/" },
-  { title: "About Us", detail: "History, values and leadership", type: "Page", path: "/about" },
-  { title: "Academics", detail: "Lower School, Middle School, Sixth Form", type: "Page", path: "/academics" },
-  { title: "Admissions", detail: "Steps, fees, bursaries and key dates", type: "Page", path: "/admissions" },
-  { title: "News & Events", detail: "Stories, calendar and upcoming events", type: "Page", path: "/news" },
-  { title: "Gallery", detail: "Photographs from around the school", type: "Page", path: "/gallery" },
-  { title: "Contact Us", detail: "Enquiry form, map and visiting hours", type: "Page", path: "/contact" },
-  { title: "Student Portal", detail: "Timetable, assignments, grades and resources", type: "Page", path: "/portal" },
-  ...NEWS.map((n) => ({ title: n.title, detail: n.excerpt, type: "News" as const, path: "/news" })),
-  ...EVENTS.map((e) => ({ title: e.title, detail: `${fmtDate(e.date)} · ${e.time} · ${e.location}`, type: "Event" as const, path: "/news" })),
-  ...STAGES.map((s) => ({ title: s.name, detail: `${s.ages} · ${s.years}`, type: "Programme" as const, path: "/academics" })),
-  ...RESOURCES.map((r) => ({ title: r.title, detail: `${r.kind} · ${r.audience}`, type: "Resource" as const, path: "/contact" })),
-  { title: "Open Morning — Michaelmas", detail: "Book a tour and taster lessons", type: "Event", path: "/admissions" },
-  { title: "Bursaries & Scholarships", detail: "Means-tested support up to 100% of fees", type: "Page", path: "/admissions" },
+export const assignments: Assignment[] = [
+  { id: "a1", subject: "Biology", title: "Enzyme rate write-up (lab pages 14–16)", due: dayOffset(1, 9) },
+  { id: "a2", subject: "English Literature", title: "Essay: memory in 'The Go-Between', 800 words", due: dayOffset(2, 9) },
+  { id: "a3", subject: "Mathematics", title: "Quadratics worksheet Q1–Q18, show workings", due: dayOffset(3, 9) },
+  { id: "a4", subject: "French", title: "Learn irregular futur stems — quiz Friday P1", due: dayOffset(4, 9) },
+  { id: "a5", subject: "History", title: "Source analysis: the 1911 census extract", due: dayOffset(6, 9) },
+  { id: "a6", subject: "Chemistry", title: "Bonding revision cards, complete set 4", due: dayOffset(8, 9) },
+  { id: "a7", subject: "Design & Tech", title: "CAD model of garden bench — file to portal", due: dayOffset(10, 9) },
 ];
 
-/* ------------------------------ misc ------------------------------ */
-export const SCHOOL = {
-  name: "Ashgrove Academy",
-  short: "Ashgrove",
-  motto: "Lumen et Veritas",
-  founded: 1912,
-  address: "The Hill, Ash Vale, Somerset BA5 2QR",
-  phone: "01761 555 019",
-  email: "office@ashgrove.example",
-  registrarEmail: "admissions@ashgrove.example",
-  termNow: "Michaelmas Term",
-};
+export const grades = [
+  { subject: "English Literature", teacher: "Mr. Whitfield", t1: 78, t2: 82 },
+  { subject: "English Language", teacher: "Mr. Whitfield", t1: 74, t2: 79 },
+  { subject: "Mathematics", teacher: "Mrs. Sato", t1: 88, t2: 91 },
+  { subject: "Biology", teacher: "Dr. Fenwick", t1: 81, t2: 84 },
+  { subject: "Chemistry", teacher: "Mr. Hale", t1: 76, t2: 75 },
+  { subject: "Physics", teacher: "Mr. Brandt", t1: 72, t2: 77 },
+  { subject: "French", teacher: "Mme. Aubert", t1: 69, t2: 73 },
+  { subject: "History", teacher: "Dr. Ellison", t1: 85, t2: 83 },
+  { subject: "Geography", teacher: "Ms. Kaur", t1: 79, t2: 81 },
+  { subject: "Art", teacher: "Ms. Bloom", t1: 90, t2: 92 },
+];
+
+export const gradeBand = (pct: number) =>
+  pct >= 85 ? { g: "9–8", tone: "text-moss-700 bg-[#e3edE4]" } :
+  pct >= 75 ? { g: "7–6", tone: "text-navy-700 bg-navy-100" } :
+  pct >= 65 ? { g: "5–4", tone: "text-gold-600 bg-gold-100" } :
+  { g: "3–1", tone: "text-crimson-700 bg-[#f3e2dd]" };
+
+export const portalNotices = [
+  { title: "Mock exam timetable posted", body: "Years 11 & 13: check the examinations page — mocks begin " + fmtShort(dayOffset(33, 8)) + ".", tag: "Exams" },
+  { title: "Library open until 17:00", body: "The Ellison Library stays open late every Tuesday and Thursday until mocks end.", tag: "Library" },
+  { title: "Ski trip deposits due Friday", body: "The Val d'Isère trip (Years 9–11) deposit of £180 is due via the portal by Friday.", tag: "Trips" },
+  { title: "Lost property amnesty", body: "Everything unclaimed goes to the charity shop after half-term. The blazer mountain awaits.", tag: "General" },
+];
+
+/* ---------- site search ---------- */
+
+export interface SearchDoc {
+  type: "Page" | "Programme" | "News" | "Event" | "Resource";
+  title: string;
+  text: string;
+  path: string;
+  meta: string;
+}
+
+export const searchDocs: SearchDoc[] = [
+  { type: "Page", title: "Home", text: "Welcome to Ashgrove Academy. Independent day school for ages 4 to 18 in Hartfield, Kent. Open mornings, term dates, campus life.", path: "/", meta: "Page" },
+  { type: "Page", title: "About Us", text: "Our history since 1912, values, leadership team, campus and houses. Edith Ashworth, motto roots and wings.", path: "/about", meta: "Page" },
+  { type: "Page", title: "Academics", text: "Early Years, Lower School, Middle School, Sixth Form. Curriculum areas, GCSE options, A-levels, timetable, assessment and reporting.", path: "/academics", meta: "Page" },
+  { type: "Page", title: "Admissions", text: "How to apply, entry points 4+ 7+ 11+ 13+ 16+, fees, bursaries, scholarships, open mornings, registration form, FAQs.", path: "/admissions", meta: "Page" },
+  { type: "Page", title: "News & Events", text: "Latest school news, fixtures, concerts, exhibitions, open days and the full event calendar.", path: "/news", meta: "Page" },
+  { type: "Page", title: "Gallery", text: "Photographs of the campus, classrooms, sport, arts and community life at Ashgrove.", path: "/gallery", meta: "Page" },
+  { type: "Page", title: "Contact Us", text: "Address, phone, email, office hours, directions, bus routes and the enquiry form.", path: "/contact", meta: "Page" },
+  { type: "Page", title: "Student Portal", text: "Timetable, assignments, grades, exam dates and pupil resources. Login for current pupils.", path: "/portal", meta: "Page" },
+  ...divisions.map((d) => ({ type: "Programme" as const, title: `${d.name} (${d.ages})`, text: `${d.blurb} Subjects: ${d.subjects.join(", ")}.`, path: "/academics", meta: d.years })),
+  ...curriculumAreas.map((c) => ({ type: "Programme" as const, title: c.name, text: c.desc, path: "/academics", meta: "Curriculum" })),
+  ...newsItems.map((n) => ({ type: "News" as const, title: n.title, text: n.excerpt, path: "/news", meta: `${n.category} · ${fmtShort(n.date)}` })),
+  ...events.map((e) => ({ type: "Event" as const, title: e.title, text: `${e.description} ${e.location}`, path: "/news", meta: `${e.tag} · ${fmtWeekday(e.date)}` })),
+  ...resources.map((r) => ({ type: "Resource" as const, title: r.name, text: r.desc, path: "/admissions", meta: "Download" })),
+];
+
+export interface SearchHit {
+  doc: SearchDoc;
+  pre: string;
+  hit: string;
+  post: string;
+}
+
+export function searchSite(query: string): SearchHit[] {
+  const q = query.trim().toLowerCase();
+  if (q.length < 2) return [];
+  const hits: (SearchHit & { score: number })[] = [];
+  for (const doc of searchDocs) {
+    const hay = `${doc.title} ${doc.text}`;
+    const i = hay.toLowerCase().indexOf(q);
+    if (i === -1) continue;
+    const titleHit = doc.title.toLowerCase().includes(q);
+    const start = Math.max(0, i - 42);
+    const end = Math.min(hay.length, i + q.length + 70);
+    hits.push({
+      doc,
+      pre: (start > 0 ? "…" : "") + hay.slice(start, i),
+      hit: hay.slice(i, i + q.length),
+      post: hay.slice(i + q.length, end) + (end < hay.length ? "…" : ""),
+      score: (titleHit ? 100 : 0) + (doc.type === "Page" ? 20 : 0),
+    });
+  }
+  hits.sort((a, b) => b.score - a.score);
+  return hits.slice(0, 14);
+}

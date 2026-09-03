@@ -1,67 +1,65 @@
-import { useEffect, useMemo, useState } from "react";
-import { GALLERY, GALLERY_CATEGORIES } from "../lib/data";
-import { Chip, Eyebrow, MaskHeading, PageHeader, Reveal } from "../components/ui";
-import { ChevronLeft, ChevronRight, CloseIcon } from "../components/icons";
-import { useLockBody } from "../lib/hooks";
+import { useMemo, useState } from "react";
+import { Lightbox } from "../components/interactive";
+import { PageHero, Reveal } from "../components/ui";
+import { IcArrowUp, IcLeaf } from "../components/icons";
+import { galleryImages, type GalleryCat } from "../lib/data";
+
+const cats: ("All" | GalleryCat)[] = ["All", "Campus", "Learning", "Arts", "Sport", "Community"];
 
 export default function Gallery() {
-  const [cat, setCat] = useState("All");
+  const [cat, setCat] = useState<(typeof cats)[number]>("All");
   const [lightbox, setLightbox] = useState<number | null>(null);
 
-  const items = useMemo(() => GALLERY.filter((g) => cat === "All" || g.category === cat), [cat]);
-  useLockBody(lightbox !== null);
-
-  useEffect(() => {
-    if (lightbox === null) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setLightbox(null);
-      if (e.key === "ArrowRight") setLightbox((v) => (v === null ? v : (v + 1) % items.length));
-      if (e.key === "ArrowLeft") setLightbox((v) => (v === null ? v : (v - 1 + items.length) % items.length));
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [lightbox, items.length]);
+  const filtered = useMemo(() => galleryImages.filter((g) => cat === "All" || g.cat === cat), [cat]);
 
   return (
-    <div>
-      <PageHeader
-        kicker="Gallery"
-        title={[<>Proof it</>, <><em className="font-light italic text-gold-300">actually happened.</em></>]}
-        intro="Photographs from the hill this term — labs, mud, paint, and the chapel roof doing its best work with the light. Click any frame to look closer."
+    <>
+      <PageHero
+        kicker="Gallery · the year in pictures"
+        title={[<>Proof it really</>, <em key="h" className="font-display italic text-gold-300">happened</em>]}
+        lede="Muddy boots, standing ovations, climate chambers and one very photogenic quad. Shot by the Year 12 photography society — errors, grain and all."
       />
 
-      <section className="paper-ruled">
-        <div className="mx-auto max-w-7xl px-5 py-16 md:px-8">
-          <Reveal>
-            <div className="flex flex-wrap items-center justify-between gap-4">
-              <div className="flex flex-wrap gap-2.5">
-                {GALLERY_CATEGORIES.map((c) => (
-                  <Chip key={c} active={cat === c} onClick={() => setCat(c)}>{c}</Chip>
-                ))}
-              </div>
-              <p className="text-sm font-bold text-navy-800/60">{items.length} frame{items.length === 1 ? "" : "s"}</p>
+      <section className="bg-chalk-50">
+        <div className="mx-auto max-w-7xl px-5 py-16 sm:px-8">
+          <Reveal className="flex flex-wrap items-center justify-between gap-5">
+            <div className="flex flex-wrap gap-2">
+              {cats.map((c) => (
+                <button
+                  key={c}
+                  onClick={() => {
+                    setCat(c);
+                    setLightbox(null);
+                  }}
+                  className={`cursor-pointer border px-3.5 py-2 text-[0.7rem] font-bold tracking-[0.12em] uppercase transition-all duration-200 ${
+                    cat === c
+                      ? "border-navy-900 bg-navy-900 text-gold-300 shadow-[4px_4px_0_rgba(217,161,59,0.6)]"
+                      : "border-navy-900/25 bg-chalk-50 text-navy-700 hover:border-navy-900 hover:bg-chalk-100"
+                  }`}
+                >
+                  {c}
+                </button>
+              ))}
             </div>
+            <p className="kicker text-navy-500">{filtered.length} {filtered.length === 1 ? "frame" : "frames"} · click any to enlarge</p>
           </Reveal>
 
           <div className="mt-10 columns-1 gap-6 sm:columns-2 lg:columns-3 [&>*]:mb-6">
-            {items.map((g, i) => (
-              <Reveal key={g.id} delay={(i % 3) * 90} tilt={i % 2 === 0 ? -0.7 : 0.7} className="break-inside-avoid">
+            {filtered.map((g, i) => (
+              <Reveal key={g.src} delay={(i % 3) * 70} className="break-inside-avoid">
                 <button
                   onClick={() => setLightbox(i)}
-                  className="group block w-full border-8 border-chalk-50 bg-chalk-50 text-left shadow-[0_18px_38px_-26px_rgba(7,26,48,0.5)] transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_28px_50px_-26px_rgba(7,26,48,0.6)]"
-                  aria-label={`Open photo: ${g.caption}`}
+                  className="group relative block w-full cursor-zoom-in overflow-hidden border-2 border-navy-900 bg-navy-900 text-left shadow-[6px_6px_0_rgba(12,35,64,0.1)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[10px_10px_0_rgba(12,35,64,0.18)]"
                 >
-                  <span className="block overflow-hidden">
-                    <img
-                      src={g.src}
-                      alt={g.caption}
-                      loading="lazy"
-                      className={`w-full object-cover transition-transform duration-700 group-hover:scale-[1.05] ${g.tall ? "h-80 sm:h-96" : "h-56 sm:h-64"}`}
-                    />
+                  <div className={`overflow-hidden ${g.aspect}`}>
+                    <img src={g.src} alt={g.alt} loading="lazy" className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.06]" />
+                  </div>
+                  <span className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-3 bg-navy-950/90 px-4 py-3 backdrop-blur-sm">
+                    <span className="font-display text-sm font-semibold text-chalk-50">{g.alt}</span>
+                    <span className="kicker shrink-0 !text-[0.55rem] text-gold-300">{g.cat}</span>
                   </span>
-                  <span className="flex items-center justify-between px-1 py-2.5">
-                    <span className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-navy-800/75 group-hover:text-navy-900">{g.caption}</span>
-                    <span className="ml-3 shrink-0 bg-gold-400 px-2 py-0.5 text-[9px] font-extrabold uppercase tracking-[0.14em] text-navy-900 opacity-0 transition-opacity group-hover:opacity-100">{g.category}</span>
+                  <span className="absolute top-3 right-3 grid h-8 w-8 place-items-center bg-gold-400 text-navy-950 opacity-0 transition-all duration-300 group-hover:opacity-100">
+                    <IcArrowUp className="h-4 w-4" />
                   </span>
                 </button>
               </Reveal>
@@ -70,46 +68,23 @@ export default function Gallery() {
         </div>
       </section>
 
-      {/* lightbox */}
-      {lightbox !== null && items[lightbox] && (
-        <div className="fixed inset-0 z-[95] flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label={items[lightbox].caption}>
-          <div className="absolute inset-0 bg-navy-950/90 backdrop-blur-sm" onClick={() => setLightbox(null)} />
-          <div className="relative w-full max-w-4xl reveal is-in">
-            <div className="border-8 border-chalk-50 bg-chalk-50 shadow-2xl">
-              <img src={items[lightbox].src} alt={items[lightbox].caption} className="max-h-[68vh] w-full object-cover" />
-              <div className="flex items-center justify-between gap-4 px-3 py-3">
-                <div>
-                  <p className="font-display text-lg font-bold text-navy-900">{items[lightbox].caption}</p>
-                  <p className="text-xs font-extrabold uppercase tracking-[0.2em] text-gold-600">{items[lightbox].category} · {lightbox + 1} of {items.length}</p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setLightbox((lightbox - 1 + items.length) % items.length)}
-                    aria-label="Previous photo"
-                    className="grid h-10 w-10 place-items-center border border-navy-900/25 text-navy-900 transition-colors hover:bg-navy-900 hover:text-gold-300"
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                  </button>
-                  <button
-                    onClick={() => setLightbox((lightbox + 1) % items.length)}
-                    aria-label="Next photo"
-                    className="grid h-10 w-10 place-items-center border border-navy-900/25 text-navy-900 transition-colors hover:bg-navy-900 hover:text-gold-300"
-                  >
-                    <ChevronRight className="h-4 w-4" />
-                  </button>
-                  <button
-                    onClick={() => setLightbox(null)}
-                    aria-label="Close lightbox"
-                    className="grid h-10 w-10 place-items-center bg-navy-900 text-gold-300 transition-colors hover:bg-crimson-600 hover:text-chalk-50"
-                  >
-                    <CloseIcon className="h-4 w-4" />
-                  </button>
-                </div>
-              </div>
-            </div>
+      {/* photographer's note */}
+      <section className="blueprint bg-navy-950 text-chalk-50">
+        <div className="mx-auto grid max-w-7xl gap-10 px-5 py-16 sm:px-8 lg:grid-cols-[1fr_2fr] lg:items-center">
+          <IcLeaf className="hidden h-28 w-28 text-gold-400/70 lg:block" />
+          <div>
+            <p className="kicker text-gold-300">From the darkroom</p>
+            <p className="font-display mt-4 text-2xl leading-snug font-semibold sm:text-3xl">
+              “We shoot on whatever's in our pockets, then argue about film grain in the common room. The quad at 07:40 is the best set in Kent — <em className="italic text-gold-300">don't tell the drama department.</em>”
+            </p>
+            <p className="mt-4 text-sm tracking-wide text-navy-300 uppercase">— Year 12 Photography Society, est. 2019</p>
           </div>
         </div>
+      </section>
+
+      {lightbox !== null && filtered[lightbox] && (
+        <Lightbox items={filtered} index={lightbox} onClose={() => setLightbox(null)} setIndex={setLightbox} />
       )}
-    </div>
+    </>
   );
 }

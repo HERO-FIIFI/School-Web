@@ -1,18 +1,19 @@
 import { useEffect, useRef, useState } from "react";
 
-export function usePrefersReducedMotion(): boolean {
-  const [reduced, setReduced] = useState(false);
+export function useReducedMotion(): boolean {
+  const [reduced, setReduced] = useState(
+    () => typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  );
   useEffect(() => {
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    setReduced(mq.matches);
-    const onChange = (e: MediaQueryListEvent) => setReduced(e.matches);
+    const onChange = () => setReduced(mq.matches);
     mq.addEventListener("change", onChange);
     return () => mq.removeEventListener("change", onChange);
   }, []);
   return reduced;
 }
 
-export function useOnScreen<T extends HTMLElement>(threshold = 0.18): [React.RefObject<T | null>, boolean] {
+export function useInView<T extends HTMLElement>(threshold = 0.18, once = true) {
   const ref = useRef<T | null>(null);
   const [inView, setInView] = useState(false);
   useEffect(() => {
@@ -24,10 +25,12 @@ export function useOnScreen<T extends HTMLElement>(threshold = 0.18): [React.Ref
     }
     const io = new IntersectionObserver(
       (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
+        entries.forEach((e) => {
+          if (e.isIntersecting) {
             setInView(true);
-            io.disconnect();
+            if (once) io.unobserve(e.target);
+          } else if (!once) {
+            setInView(false);
           }
         });
       },
@@ -35,40 +38,88 @@ export function useOnScreen<T extends HTMLElement>(threshold = 0.18): [React.Ref
     );
     io.observe(el);
     return () => io.disconnect();
-  }, [threshold]);
-  return [ref, inView];
+  }, [threshold, once]);
+  return { ref, inView };
 }
 
-export function useCountUp(target: number, start: boolean, duration = 1400): number {
-  const reduced = usePrefersReducedMotion();
+export function useCountUp(target: number, start: boolean, duration = 1500): number {
   const [value, setValue] = useState(0);
-  const raf = useRef<number>(0);
+  const reduced = useReducedMotion();
   useEffect(() => {
     if (!start) return;
     if (reduced) {
       setValue(target);
       return;
     }
+    let raf = 0;
     const t0 = performance.now();
     const tick = (t: number) => {
       const p = Math.min(1, (t - t0) / duration);
       const eased = 1 - Math.pow(1 - p, 3);
       setValue(Math.round(target * eased));
-      if (p < 1) raf.current = requestAnimationFrame(tick);
+      if (p < 1) raf = requestAnimationFrame(tick);
     };
-    raf.current = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf.current);
-  }, [start, target, duration, reduced]);
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [target, start, duration, reduced]);
   return value;
 }
 
-export function useLockBody(locked: boolean) {
+const GLYPHS = "ASHGROVEACDMY·1912§#%&";
+
+export function useScramble(text: string, play = true, speed = 26): string {
+  const [out, setOut] = useState(text);
+  const reduced = useReducedMotion();
   useEffect(() => {
-    if (!locked) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = prev;
-    };
-  }, [locked]);
+    if (!play || reduced) {
+      setOut(text);
+      return;
+    }
+    let frame = 0;
+    const total = text.length + 6;
+    const id = window.setInterval(() => {
+      frame += 1;
+      const settled = Math.max(0, frame - 4);
+      const next = text
+        .split("")
+        .map((ch, i) => {
+          if (ch === " " || ch === "\n") return ch;
+          if (i < settled) return ch;
+          return GLYPHS[Math.floor(Math.random() * GLYPHS.length)];
+        })
+        .join("");
+      setOut(next);
+      if (settled >= total) window.clearInterval(id);
+    }, speed);
+    return () => window.clearInterval(id);
+  }, [text, play, speed, reduced]);
+  return out;
+}
+
+export function useNow(intervalMs = 1000): Date {
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const id = window.setInterval(() => setNow(new Date()), intervalMs);
+    return () => window.clearInterval(id);
+  }, [intervalMs]);
+  return now;
+}
+
+export function useLocalStorage<T>(key: string, initial: T) {
+  const [value, setValue] = useState<T>(() => {
+    try {
+      const raw = window.localStorage.getItem(key);
+      return raw ? (JSON.parse(raw) as T) : initial;
+    } catch {
+      return initial;
+    }
+  });
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(key, JSON.stringify(value));
+    } catch {
+      /* storage unavailable */
+    }
+  }, [key, value]);
+  return [value, setValue] as const;
 }

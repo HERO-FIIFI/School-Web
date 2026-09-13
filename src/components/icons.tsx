@@ -257,6 +257,69 @@ export const IcShield = ({ className = "w-5 h-5" }: P) => (
   </svg>
 );
 
+export const IcUser = ({ className = "w-4 h-4" }: P) => (
+  <svg viewBox="0 0 24 24" className={className} {...S} aria-hidden>
+    <circle cx="12" cy="8.5" r="3.5" />
+    <path d="M5 20c.5-4.2 3.2-6.5 7-6.5s6.5 2.3 7 6.5" />
+  </svg>
+);
+
+export const IcShare = ({ className = "w-4 h-4" }: P) => (
+  <svg viewBox="0 0 24 24" className={className} {...S} aria-hidden>
+    <circle cx="18" cy="5" r="2.5" />
+    <circle cx="6" cy="12" r="2.5" />
+    <circle cx="18" cy="19" r="2.5" />
+    <path d="m8.2 10.8 7.6-4.6M8.2 13.2l7.6 4.6" />
+  </svg>
+);
+
+export const IcCopy = ({ className = "w-4 h-4" }: P) => (
+  <svg viewBox="0 0 24 24" className={className} {...S} aria-hidden>
+    <rect x="9" y="9" width="12" height="12" rx="2" />
+    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+  </svg>
+);
+
+export const IcExternal = ({ className = "w-4 h-4" }: P) => (
+  <svg viewBox="0 0 24 24" className={className} {...S} aria-hidden>
+    <path d="M14 4h6v6M20 4 10 14M17 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h5" />
+  </svg>
+);
+
+export const IcList = ({ className = "w-4 h-4" }: P) => (
+  <svg viewBox="0 0 24 24" className={className} {...S} aria-hidden>
+    <path d="M3 6h18M3 12h18M3 18h18" />
+  </svg>
+);
+
+export const IcGrid = ({ className = "w-4 h-4" }: P) => (
+  <svg viewBox="0 0 24 24" className={className} {...S} aria-hidden>
+    <rect x="3" y="3" width="7" height="7" rx="1" />
+    <rect x="14" y="3" width="7" height="7" rx="1" />
+    <rect x="3" y="14" width="7" height="7" rx="1" />
+    <rect x="14" y="14" width="7" height="7" rx="1" />
+  </svg>
+);
+
+export const IcHome = ({ className = "w-4 h-4" }: P) => (
+  <svg viewBox="0 0 24 24" className={className} {...S} aria-hidden>
+    <path d="M3 11 12 3l9 8" />
+    <path d="M5 10v10a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V10" />
+  </svg>
+);
+
+export const IcSparkle = ({ className = "w-4 h-4" }: P) => (
+  <svg viewBox="0 0 24 24" className={className} fill="currentColor" aria-hidden>
+    <path d="M12 2l1.8 5.2L19 9l-5.2 1.8L12 16l-1.8-5.2L5 9l5.2-1.8ZM18 14l.9 2.6L21.5 17.5l-2.6.9L18 21l-.9-2.6L14.5 17.5l2.6-.9Z" />
+  </svg>
+);
+
+export const IcFire = ({ className = "w-4 h-4" }: P) => (
+  <svg viewBox="0 0 24 24" className={className} {...S} aria-hidden>
+    <path d="M12 2c1 4 5 5 5 10a5 5 0 0 1-10 0c0-2 1-3 2-4-1 3 2 4 3 2 0-2-1-4 0-8Z" />
+  </svg>
+);
+
 export const DEPT_ICONS: Record<string, (p: P) => React.ReactElement> = {
   book: IcBook,
   compass: IcCompass,

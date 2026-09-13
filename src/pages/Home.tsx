@@ -306,7 +306,15 @@ export default function Home() {
                   {featured.title}
                 </h3>
                 <p className="mt-3 text-ink-soft leading-relaxed">{featured.excerpt}</p>
-                <span className="mt-5 inline-flex items-center gap-2 font-bold text-pine-800 group-hover:text-gold-600 transition-colors">
+                <div className="mt-4 flex items-center gap-4 text-xs text-ink-soft">
+                  <span className="flex items-center gap-1.5">
+                    <IcArrow className="w-3 h-3" /> {featured.author}
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <IcClock className="w-3 h-3" /> {featured.readMin} min read
+                  </span>
+                </div>
+                <span className="mt-4 inline-flex items-center gap-2 font-bold text-pine-800 group-hover:text-gold-600 transition-colors">
                   Read the story <IcArrow className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </span>
               </div>
@@ -331,6 +339,11 @@ export default function Home() {
                       {n.title}
                     </h4>
                     <p className="mt-1.5 text-sm text-ink-soft line-clamp-2">{n.excerpt}</p>
+                    <p className="mt-2 text-[0.68rem] text-ink-soft flex items-center gap-2">
+                      <span className="flex items-center gap-1"><IcArrow className="w-3 h-3" /> {n.author}</span>
+                      <span>·</span>
+                      <span>{n.readMin} min</span>
+                    </p>
                   </div>
                 </Link>
               </Reveal>
